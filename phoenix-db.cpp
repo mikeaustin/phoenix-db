@@ -58,10 +58,30 @@ struct TeamIndexData {
 
 struct ItemIdIndex {
   uint64_t itemId;
-  size_t index;
+  size_t dataIndex;
 };
 
 //
+
+int binarySearch(ItemIdIndex array[], size_t size, int target) {
+  int low = 0, high = size - 1;
+
+  while (low <= high) {
+    int index = low + (high - low) / 2;
+
+    if (array[index].itemId == target) {
+        return index;
+    }
+    else if (array[index].itemId < target) {
+        low = index + 1;
+    }
+    else {
+        high = index - 1;
+    }
+  }
+
+  return -1;
+}
 
 int main() {
   Data data = {
@@ -72,12 +92,11 @@ int main() {
     { ITEM, 0, 20002, 2000, 0, { 16, 'I', 'J', 'K', 'L', 0 } },
   };
 
-  TeamIndexData indexData[] = {
-    { 10000, 0 },
-    { 10001, 2 },
+    TeamIndexData indexData[] = {
+    { 1000, 0 }, { 1001, 2 },
   };
 
-  size_t itemTeamEqualityIndex[] = {
+  size_t itemTeamOrderedIndex[] = {
     10000, 10001, 10002,
   };
 
@@ -85,6 +104,10 @@ int main() {
     { 20000, 0 }, { 20001, 1 }, { 20002, 2 },
   };
 
+  auto item = binarySearch(itemIdIndex, sizeof(itemIdIndex) / sizeof(ItemIdIndex), 20001);
+
+  cout << item << endl << endl;
+  
   cout << "Offset" << "\t" << "Type" << "\t" << "ID" << "\t" << "Team ID" << "\t" << "Length" << "\t" << "Title" << endl;
   cout << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << endl;
 

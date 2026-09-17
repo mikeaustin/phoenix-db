@@ -18,11 +18,11 @@ enum Type : uint32_t {
   ITEM = 200,
 };
 
-int32_t getInt32(int32_t *data, size_t offset) {
+int32_t getInt32(int8_t *data, size_t offset) {
   return *reinterpret_cast<int32_t *>(data + offset);
 }
 
-char *getString(int32_t *data, size_t offset) {
+char *getString(int8_t *data, size_t offset) {
   return reinterpret_cast<char *>(data + offset);
 }
 
@@ -51,41 +51,63 @@ struct Data {
   Item<16> item3;
 };
 
+struct TeamIndexData {
+  uint64_t teamId;
+  uint64_t firstIndex;
+};
+
+struct ItemIdIndex {
+  uint64_t itemId;
+  size_t index;
+};
+
 //
 
 int main() {
   Data data = {
     { TEAM, 0, 1000 },
     { TEAM, 0, 1001 },
-    { ITEM, 0, 2000, 1000, 0, { 4, { 'A', 'B', 'C', 0 } } },
-    { ITEM, 0, 2001, 1000, 0, { 12, 'D', 'E', 'F', 'G', 'H', 0 } },
-    { ITEM, 0, 2002, 1000, 0, { 16, 'I', 'J', 'K', 'L', 0 } },
+    { ITEM, 0, 20000, 1000, 0, { 4, { 'A', 'B', 'C', 0 } } },
+    { ITEM, 0, 20001, 1000, 0, { 12, 'D', 'E', 'F', 'G', 'H', 0 } },
+    { ITEM, 0, 20002, 2000, 0, { 16, 'I', 'J', 'K', 'L', 0 } },
   };
 
-  int32_t *p = reinterpret_cast<int *>(&data);
+  TeamIndexData indexData[] = {
+    { 10000, 0 },
+    { 10001, 2 },
+  };
 
-  while (p != 0) {
-    if (*p == Type::TEAM) {
-      cout << getInt32(p, 0) << "\t";
-      cout << getInt32(p, 2) << endl;
+  size_t itemTeamEqualityIndex[] = {
+    10000, 10001, 10002,
+  };
 
-      p += sizeof(Team) / 4;
-    } else if (*p == Type::ITEM) {
-      auto type = getInt32(p, 0);
-      auto id = getInt32(p, 2);
-      auto teamId = getInt32(p, 4);
-      auto length = getInt32(p, 7);
-      auto title = getString(p, 8);
+  ItemIdIndex itemIdIndex[] = {
+    { 20000, 0 }, { 20001, 1 }, { 20002, 2 },
+  };
 
-      cout << type << "\t";
-      cout << id << "\t";
-      cout << teamId << "\t";
-      cout << length << "\t";
-      cout << title << endl;
+  cout << "Offset" << "\t" << "Type" << "\t" << "ID" << "\t" << "Team ID" << "\t" << "Length" << "\t" << "Title" << endl;
+  cout << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << endl;
 
-      p += (sizeof(Item<0>) + (length + 8 - 1) / 8 * 8) / 4;
+  int8_t *ptr = reinterpret_cast<int8_t *>(&data);
+
+  while (ptr != 0) {
+    auto type = getInt32(ptr, 0);
+    auto id = getInt32(ptr, 8);
+
+    if (type == Type::TEAM) {
+      cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << type << "\t" << id << endl;
+
+      ptr += sizeof(Team);
+    } else if (type == Type::ITEM) {
+      auto teamId = getInt32(ptr, 16);
+      auto length = getInt32(ptr, 28);
+      auto title = getString(ptr, 32);
+
+      cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << type << "\t" << id << "\t" << teamId << "\t" << length << "\t" << title << endl;
+
+      ptr += sizeof(Item<0>) + (length + 8 - 1) / 8 * 8;
     } else {
-      p = 0;
+      ptr = 0;
     }
   }
 

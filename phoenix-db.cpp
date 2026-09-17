@@ -70,9 +70,29 @@ int binarySearch(ItemIdIndex array[], size_t size, int target) {
     int index = low + (high - low) / 2;
 
     if (array[index].itemId == target) {
-        return index;
+        return array[index].dataIndex;
     }
     else if (array[index].itemId < target) {
+        low = index + 1;
+    }
+    else {
+        high = index - 1;
+    }
+  }
+
+  return -1;
+}
+
+int binarySearch2(TeamIndexData array[], size_t size, int target) {
+  int low = 0, high = size - 1;
+
+  while (low <= high) {
+    int index = low + (high - low) / 2;
+
+    if (array[index].teamId == target) {
+        return index;
+    }
+    else if (array[index].teamId < target) {
         low = index + 1;
     }
     else {
@@ -92,22 +112,18 @@ int main() {
     { ITEM, 0, 20002, 2000, 0, { 16, 'I', 'J', 'K', 'L', 0 } },
   };
 
-    TeamIndexData indexData[] = {
+  TeamIndexData indexData[] = {
     { 1000, 0 }, { 1001, 2 },
   };
 
   size_t itemTeamOrderedIndex[] = {
-    10000, 10001, 10002,
+    32, 72, 120,
   };
 
   ItemIdIndex itemIdIndex[] = {
-    { 20000, 0 }, { 20001, 1 }, { 20002, 2 },
+    { 20000, 32 }, { 20001, 72 }, { 20002, 120 },
   };
 
-  auto item = binarySearch(itemIdIndex, sizeof(itemIdIndex) / sizeof(ItemIdIndex), 20001);
-
-  cout << item << endl << endl;
-  
   cout << "Offset" << "\t" << "Type" << "\t" << "ID" << "\t" << "Team ID" << "\t" << "Length" << "\t" << "Title" << endl;
   cout << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << endl;
 
@@ -133,6 +149,22 @@ int main() {
       ptr = 0;
     }
   }
+
+  cout << endl;
+
+  auto itemOffset = binarySearch(itemIdIndex, sizeof(itemIdIndex) / sizeof(ItemIdIndex), 20001);
+
+  if (itemOffset >= 0) {
+    int8_t *ptr = reinterpret_cast<int8_t *>(&data) + itemOffset;
+
+    cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
+  }
+
+  itemOffset = binarySearch2(indexData, sizeof(indexData) / sizeof(TeamIndexData), 1001);
+
+  ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[itemOffset];
+
+  cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
 
   return 0;
 }

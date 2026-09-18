@@ -49,6 +49,7 @@ struct Data {
   Item<4> item1;
   Item<12> item2;
   Item<16> item3;
+  Item<10> item4;
 };
 
 struct TeamIndexData {
@@ -109,7 +110,8 @@ int main() {
     { TEAM, 0, 1001 },
     { ITEM, 0, 20000, 1000, 0, { 4, { 'A', 'B', 'C', 0 } } },
     { ITEM, 0, 20001, 1000, 0, { 12, 'D', 'E', 'F', 'G', 'H', 0 } },
-    { ITEM, 0, 20002, 2000, 0, { 16, 'I', 'J', 'K', 'L', 0 } },
+    { ITEM, 0, 20002, 1001, 0, { 16, 'I', 'J', 'K', 'L', 0 } },
+    { ITEM, 0, 20003, 1001, 0, { 10, 'M', 'N', 'O', 0 } },
   };
 
   TeamIndexData indexData[] = {
@@ -162,7 +164,13 @@ int main() {
 
   itemOffset = binarySearch2(indexData, sizeof(indexData) / sizeof(TeamIndexData), 1001);
 
-  ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[itemOffset];
+  cout << itemOffset << endl;
+  
+  ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[indexData[itemOffset].firstIndex];
+
+  cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
+
+  ptr += sizeof(Item<0>) + (getInt32(ptr, 28) + 8 - 1) / 8 * 8;
 
   cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
 

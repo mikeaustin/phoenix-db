@@ -52,14 +52,9 @@ struct Data {
   Item<10> item4;
 };
 
-struct TeamIndexData {
-  uint64_t teamId;
-  uint64_t firstIndex;
-};
-
 struct ItemIdIndex {
-  uint64_t itemId;
-  size_t dataIndex;
+  uint64_t id;
+  size_t index;
 };
 
 //
@@ -70,10 +65,10 @@ int binarySearch(ItemIdIndex array[], size_t size, int target) {
   while (low <= high) {
     int index = low + (high - low) / 2;
 
-    if (array[index].itemId == target) {
-        return array[index].dataIndex;
+    if (array[index].id == target) {
+        return array[index].index;
     }
-    else if (array[index].itemId < target) {
+    else if (array[index].id < target) {
         low = index + 1;
     }
     else {
@@ -84,16 +79,16 @@ int binarySearch(ItemIdIndex array[], size_t size, int target) {
   return -1;
 }
 
-int binarySearch2(TeamIndexData array[], size_t size, int target) {
+int binarySearch2(ItemIdIndex array[], size_t size, int target) {
   int low = 0, high = size - 1;
 
   while (low <= high) {
     int index = low + (high - low) / 2;
 
-    if (array[index].teamId == target) {
+    if (array[index].id == target) {
         return index;
     }
-    else if (array[index].teamId < target) {
+    else if (array[index].id < target) {
         low = index + 1;
     }
     else {
@@ -114,7 +109,7 @@ int main() {
     { ITEM, 0, 20003, 1001, 0, { 10, 'M', 'N', 'O', 0 } },
   };
 
-  TeamIndexData indexData[] = {
+  ItemIdIndex indexData[] = {
     { 1000, 0 }, { 1001, 2 },
   };
 
@@ -162,11 +157,11 @@ int main() {
     cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
   }
 
-  itemOffset = binarySearch2(indexData, sizeof(indexData) / sizeof(TeamIndexData), 1001);
+  itemOffset = binarySearch2(indexData, sizeof(indexData) / sizeof(ItemIdIndex), 1001);
 
   cout << itemOffset << endl;
   
-  ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[indexData[itemOffset].firstIndex];
+  ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[indexData[itemOffset].index];
 
   cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
 

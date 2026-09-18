@@ -31,11 +31,10 @@ std::optional<TArray *> binarySearch(TArray (&array)[N], TValue value) {
 
   while (low <= high) {
     auto mid = low + (high - low) / 2;
-    auto item = *reinterpret_cast<TValue *>(&array[mid]);
 
-    if (item == value) {
+    if (array[mid].value == value) {
       return &array[mid];
-    } else if (item < value) {
+    } else if (array[mid].value < value) {
       low = mid + 1;
     } else {
       high = mid - 1;

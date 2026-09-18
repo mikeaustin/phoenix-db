@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdint>
 #include <algorithm>
+#include <optional>
 
 #include "utils.h"
 
@@ -94,8 +95,8 @@ int main() {
 
   auto element = binarySearch(itemIdIndex, 20001);
 
-  if (element->offset > 0) {
-    int8_t *ptr = reinterpret_cast<int8_t *>(&data) + element->offset;
+  if (element) {
+    int8_t *ptr = reinterpret_cast<int8_t *>(&data) + (*element)->offset;
 
     cout << getInt<uint32_t>(ptr, 0) << "\t" << getInt<uint64_t>(ptr, 8) << endl;
   }
@@ -104,8 +105,8 @@ int main() {
 
   auto element2 = binarySearch(indexData, 1000);
 
-  if (element->offset > 0) {
-    ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[element2->offset];
+  if (element) {
+    ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[(*element2)->offset];
 
     while (ptr < reinterpret_cast<int8_t *>(&data) + sizeof(data)) {
       auto type = getInt<uint32_t>(ptr, 0);

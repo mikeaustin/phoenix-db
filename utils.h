@@ -26,7 +26,7 @@ char *getString(int8_t *data, size_t offset) {
 //
 
 template <typename TArray, size_t N, typename TValue>
-TArray *binarySearch(TArray (&array)[N], TValue value) {
+std::optional<TArray *> binarySearch(TArray (&array)[N], TValue value) {
   size_t low = 0, high = N - 1;
 
   while (low <= high) {
@@ -42,7 +42,7 @@ TArray *binarySearch(TArray (&array)[N], TValue value) {
     }
   }
 
-  return 0;
+  return std::nullopt;
 }
 
 //

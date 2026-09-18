@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cstdint>
+#include <algorithm>
 
 #include "utils.h"
 
@@ -45,16 +46,14 @@ int binarySearch(ItemIdIndex array[], size_t size, int target) {
   int low = 0, high = size - 1;
 
   while (low <= high) {
-    int index = low + (high - low) / 2;
+    int mid = low + (high - low) / 2;
 
-    if (array[index].id == target) {
-        return array[index].index;
-    }
-    else if (array[index].id < target) {
-        low = index + 1;
-    }
-    else {
-        high = index - 1;
+    if (array[mid].id == target) {
+      return array[mid].index;
+    } else if (array[mid].id < target) {
+      low = mid + 1;
+    } else {
+      high = mid - 1;
     }
   }
 
@@ -78,13 +77,24 @@ size_t itemTeamOrderedIndex[] = {
   32, 72, 120,
 };
 
+auto xxx = binarySearch2(std::begin(indexData), std::end(indexData), 1002, [](const ItemIdIndex& index, int64_t id) {
+  return index.id < id ? -1 : index.id > id ? 1 : 0;
+});
+
+auto zzz = std::lower_bound(std::begin(indexData), std::end(indexData), 1002, [](const ItemIdIndex& index, int id) {
+  return index.id < id;
+});
+
 ItemIdIndex itemIdIndex[] = {
   { 20000, 32 }, { 20001, 72 }, { 20002, 120 },
 };
 
 int main() {
-  cout << "Offset" << "\t" << "Type" << "\t" << "ID" << "\t" << "Team ID" << "\t" << "Length" << "\t" << "Title" << endl;
-  cout << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << "\t" << "=======" << endl;
+  cout << xxx->id << endl;
+  cout << zzz->id << endl;
+
+  cout << format("Offset", "Type", "ID", "Team ID", "Length", "Title") << endl;
+  cout << format("=======", "=======", "=======", "=======", "=======", "=======") << endl;
 
   int8_t *ptr = reinterpret_cast<int8_t *>(&data);
 
@@ -136,7 +146,7 @@ int main() {
       break;
     }
 
-    cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << type << "\t" << id << "\t" << teamId << "\t" << length << "\t" << title << endl;
+    cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, length, title) << endl;
 
     ptr += sizeof(Item<0>) + (length + 8 - 1) / 8 * 8;
   }

@@ -89,16 +89,16 @@ int main() {
   int8_t *ptr = reinterpret_cast<int8_t *>(&data);
 
   while (ptr < reinterpret_cast<int8_t *>(&data) + sizeof(data)) {
-    auto type = getInt32(ptr, 0);
-    auto id = getInt32(ptr, 8);
+    auto type = getInt<uint32_t>(ptr, 0);
+    auto id = getInt<uint64_t>(ptr, 8);
 
     if (type == Type::TEAM) {
       cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << type << "\t" << id << endl;
 
       ptr += sizeof(Team);
     } else if (type == Type::ITEM) {
-      auto teamId = getInt32(ptr, 16);
-      auto length = getInt32(ptr, 28);
+      auto teamId = getInt<uint64_t>(ptr, 16);
+      auto length = getInt<uint32_t>(ptr, 28);
       auto title = getString(ptr, 32);
 
       cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << type << "\t" << id << "\t" << teamId << "\t" << length << "\t" << title << endl;
@@ -116,7 +116,7 @@ int main() {
   if (itemOffset >= 0) {
     int8_t *ptr = reinterpret_cast<int8_t *>(&data) + itemOffset;
 
-    cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
+    cout << getInt<uint32_t>(ptr, 0) << "\t" << getInt<uint64_t>(ptr, 8) << endl;
   }
 
   //
@@ -126,10 +126,10 @@ int main() {
   ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[itemOffset];
 
   while (ptr < reinterpret_cast<int8_t *>(&data) + sizeof(data)) {
-    auto type = getInt32(ptr, 0);
-    auto id = getInt32(ptr, 8);
-    auto teamId = getInt32(ptr, 16);
-    auto length = getInt32(ptr, 28);
+    auto type = getInt<uint32_t>(ptr, 0);
+    auto id = getInt<uint64_t>(ptr, 8);
+    auto teamId = getInt<uint64_t>(ptr, 16);
+    auto length = getInt<uint32_t>(ptr, 28);
     auto title = getString(ptr, 32);
 
     if (teamId != 1000) {

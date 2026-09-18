@@ -8,8 +8,13 @@ enum Type : uint32_t {
   ITEM = 200,
 };
 
-int32_t getInt32(int8_t *data, size_t offset) {
-  return *reinterpret_cast<int32_t *>(data + offset);
+template <typename T>
+T getInt(int8_t *data, size_t offset) {
+  if (reinterpret_cast<size_t>(data) % sizeof(T) != 0 || offset % sizeof(T) != 0) {
+    throw new std::invalid_argument("Alignment error");
+  }
+
+  return *reinterpret_cast<T *>(data + offset);
 }
 
 char *getString(int8_t *data, size_t offset) {

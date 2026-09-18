@@ -37,28 +37,10 @@ struct Data {
 
 struct ItemIdIndex {
   uint64_t id;
-  size_t index;
+  size_t offset;
 };
 
 //
-
-int binarySearch(ItemIdIndex array[], size_t size, int target) {
-  int low = 0, high = size - 1;
-
-  while (low <= high) {
-    int mid = low + (high - low) / 2;
-
-    if (array[mid].id == target) {
-      return array[mid].index;
-    } else if (array[mid].id < target) {
-      low = mid + 1;
-    } else {
-      high = mid - 1;
-    }
-  }
-
-  return -1;
-}
 
 Data data = {
   { TEAM, 0, 1000 },
@@ -77,22 +59,11 @@ size_t itemTeamOrderedIndex[] = {
   32, 72, 120,
 };
 
-auto xxx = binarySearch2(std::begin(indexData), std::end(indexData), 1002, [](const ItemIdIndex& index, int64_t id) {
-  return index.id < id ? -1 : index.id > id ? 1 : 0;
-});
-
-auto zzz = std::lower_bound(std::begin(indexData), std::end(indexData), 1002, [](const ItemIdIndex& index, int id) {
-  return index.id < id;
-});
-
 ItemIdIndex itemIdIndex[] = {
   { 20000, 32 }, { 20001, 72 }, { 20002, 120 },
 };
 
 int main() {
-  cout << xxx->id << endl;
-  cout << zzz->id << endl;
-
   cout << format("Offset", "Type", "ID", "Team ID", "Length", "Title") << endl;
   cout << format("=======", "=======", "=======", "=======", "=======", "=======") << endl;
 
@@ -121,34 +92,36 @@ int main() {
 
   cout << endl;
 
-  auto itemOffset = binarySearch(itemIdIndex, sizeof(itemIdIndex) / sizeof(ItemIdIndex), 20001);
+  auto element = binarySearch(itemIdIndex, 20001);
 
-  if (itemOffset >= 0) {
-    int8_t *ptr = reinterpret_cast<int8_t *>(&data) + itemOffset;
+  if (element->offset > 0) {
+    int8_t *ptr = reinterpret_cast<int8_t *>(&data) + element->offset;
 
     cout << getInt<uint32_t>(ptr, 0) << "\t" << getInt<uint64_t>(ptr, 8) << endl;
   }
 
   //
 
-  itemOffset = binarySearch(indexData, sizeof(indexData) / sizeof(ItemIdIndex), 1000);
+  auto element2 = binarySearch(indexData, 1000);
 
-  ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[itemOffset];
+  if (element->offset > 0) {
+    ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[element2->offset];
 
-  while (ptr < reinterpret_cast<int8_t *>(&data) + sizeof(data)) {
-    auto type = getInt<uint32_t>(ptr, 0);
-    auto id = getInt<uint64_t>(ptr, 8);
-    auto teamId = getInt<uint64_t>(ptr, 16);
-    auto length = getInt<uint32_t>(ptr, 28);
-    auto title = getString(ptr, 32);
+    while (ptr < reinterpret_cast<int8_t *>(&data) + sizeof(data)) {
+      auto type = getInt<uint32_t>(ptr, 0);
+      auto id = getInt<uint64_t>(ptr, 8);
+      auto teamId = getInt<uint64_t>(ptr, 16);
+      auto length = getInt<uint32_t>(ptr, 28);
+      auto title = getString(ptr, 32);
 
-    if (teamId != 1000) {
-      break;
+      if (teamId != 1000) {
+        break;
+      }
+
+      cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, length, title) << endl;
+
+      ptr += sizeof(Item<0>) + (length + 8 - 1) / 8 * 8;
     }
-
-    cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, length, title) << endl;
-
-    ptr += sizeof(Item<0>) + (length + 8 - 1) / 8 * 8;
   }
 
   return 0;

@@ -25,24 +25,24 @@ char *getString(int8_t *data, size_t offset) {
 
 //
 
-template <typename TIterator, typename TValue, class TCompare>
-TIterator binarySearch2(TIterator low, TIterator high, const TValue& value, TCompare compare) {
-  TIterator invalid = high;
+template <typename TArray, size_t N, typename TValue>
+TArray *binarySearch(TArray (&array)[N], TValue value) {
+  size_t low = 0, high = N - 1;
 
   while (low <= high) {
     auto mid = low + (high - low) / 2;
-    auto result = compare(*mid, value);
+    auto item = *reinterpret_cast<TValue *>(&array[mid]);
 
-    if (result == 0) {
-      return mid;
-    } else if (result < 0) {
-        low = mid + 1;
+    if (item == value) {
+      return &array[mid];
+    } else if (item < value) {
+      low = mid + 1;
     } else {
-        high = mid;
+      high = mid - 1;
     }
   }
 
-  return invalid;
+  return 0;
 }
 
 //

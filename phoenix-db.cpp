@@ -79,26 +79,6 @@ int binarySearch(ItemIdIndex array[], size_t size, int target) {
   return -1;
 }
 
-int binarySearch2(ItemIdIndex array[], size_t size, int target) {
-  int low = 0, high = size - 1;
-
-  while (low <= high) {
-    int index = low + (high - low) / 2;
-
-    if (array[index].id == target) {
-        return index;
-    }
-    else if (array[index].id < target) {
-        low = index + 1;
-    }
-    else {
-        high = index - 1;
-    }
-  }
-
-  return -1;
-}
-
 int main() {
   Data data = {
     { TEAM, 0, 1000 },
@@ -157,11 +137,11 @@ int main() {
     cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
   }
 
-  itemOffset = binarySearch2(indexData, sizeof(indexData) / sizeof(ItemIdIndex), 1001);
+  itemOffset = binarySearch(indexData, sizeof(indexData) / sizeof(ItemIdIndex), 1001);
 
   cout << itemOffset << endl;
   
-  ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[indexData[itemOffset].index];
+  ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[itemOffset];
 
   cout << getInt32(ptr, 0) << "\t" << getInt32(ptr, 8) << endl;
 

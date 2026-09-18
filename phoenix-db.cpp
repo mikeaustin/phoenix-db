@@ -101,7 +101,7 @@ int main() {
       auto length = getInt<uint32_t>(ptr, 28);
       auto title = getString(ptr, 32);
 
-      cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << type << "\t" << id << "\t" << teamId << "\t" << length << "\t" << title << endl;
+      cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, length, title) << endl;
 
       ptr += sizeof(Item<0>) + (length + 8 - 1) / 8 * 8;
     } else {

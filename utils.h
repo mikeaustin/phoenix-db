@@ -44,6 +44,40 @@ std::optional<TArray *> binarySearch(TArray (&array)[N], TValue value) {
   return std::nullopt;
 }
 
+inline size_t lowerBound(const int64_t *array, size_t size, int64_t value) {
+  size_t low = 0, high = size - 1;
+
+  while (low <= high) {
+    auto mid = low + (high - low) / 2;
+
+    if (array[mid] == value) {
+      return mid;
+    } else if (array[mid] < value) {
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  return high;
+}
+
+int lowerBound2(const int64_t *array, size_t size, int64_t value) {
+    int low = 0, high = size;
+
+    while (low < high) {
+        int mid = low + (high - low) / 2; 
+
+        if (array[mid] >= value) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    return low;
+}
+
 //
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>

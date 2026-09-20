@@ -1,9 +1,10 @@
-// g++ -std=c++20
+// g++ -std=c++20 -mavx2
 
 #include <iostream>
 #include <cstdint>
 #include <algorithm>
 #include <optional>
+#include <chrono>
 #include <bit>
 #include <immintrin.h>
 
@@ -32,47 +33,153 @@ inline int search_avx2_block(const int32_t* block, int32_t target) {
     return _mm_popcnt_u32(mask);
 }
 
-int32_t horizontal_stree_search(const int32_t* tree, size_t num_nodes, int32_t target) {
-    size_t node_idx = 0;
+// Returns the index of the first element that does not compare less than target.
+// The array MUST be aligned or unaligned-safe, and padded so reading 8 elements is safe.
+int64_t simd_lower_bound(const int32_t *array, int64_t size, int32_t target) {
+    int64_t low = 0, high = size;
+
+    // Broadcast the target value to all 8 slots
     __m256i v_target = _mm256_set1_epi32(target);
 
-    // Navigate down the tree levels
-    while (node_idx < num_nodes) {
-        // Load all 8 elements of the current node into a SIMD register
-        __m256i v_node = _mm256_loadu_si256((const __m256i*)&tree[node_idx * 8]);
+    // Traditional binary search loop, but we operate in blocks of 8 elements
+    while (high - low >= 8) {
+        // Find a midpoint block aligned to 8 elements
+        int64_t mid = low + ((high - low) / 16) * 8; 
 
-        // Compare target against all 8 elements (returns 0xFFFFFFFF if target > element)
-        __m256i v_cmp = _mm256_cmpgt_epi32(v_target, v_node);
+        // Load 8 contiguous elements
+        __m256i v_array = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&array[mid]));
 
-        // Extract comparison results into an 8-bit mask
-        unsigned int mask = _mm256_movemask_ps(_mm256_castsi256_ps(v_cmp));
+        // Compare: returns 0xFFFFFFFF if target > array_elem, else 0x0
+        __m256i v_cmp = _mm256_cmpgt_epi32(v_target, v_array);
 
-        // The number of set bits (popcount) gives the number of elements smaller than target
-        // int child_branch = _popcnt32(mask); // Range: 0 to 8
-        int child_branch = std::popcount(mask); // Works on MSVC, GCC, and Clang safely
+        // Extract the signs of the 8 floats/ints into an 8-bit mask
+        int mask = _mm256_movemask_ps(_mm256_castsi256_ps(v_cmp));
 
-        // If target is smaller than all elements, branch is 0. If larger than all, branch is 8.
-        // Calculate the next node index
-        node_idx = node_idx * 8 + child_branch + 1;
+        if (mask == 0xFF) {
+            // All 8 elements in this block are less than target. 
+            // Move search space past this block.
+            low = mid + 8;
+        } else if (mask == 0x00) {
+            // All 8 elements in this block are greater than or equal to target.
+            // Move search space to before this block.
+            high = mid;
+        } else {
+            // The boundary lies inside this 8-element block.
+            // Count trailing zeros (or count set bits) to find exactly how many elements are smaller.
+            int smaller_count = __builtin_ctz(~mask); 
+            
+            return mid + smaller_count;
+        }
     }
 
-    // Leaf fixup and indexing mapping back to sorted array would go here...
-    return -1; 
+    // Scalar cleanup for remaining elements if the array size wasn't a multiple of 8
+    while (low < high) {
+        int64_t mid = low + (high - low) / 2;
+
+        if (array[mid] < target) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    return low;
 }
 
+// Returns the index of the first element which does not compare less than 'target'.
+// 'data' must be a sorted array of int64_t.
+size_t avx2_lower_bound_i64(const int64_t* data, size_t size, int64_t target) {
+    if (size == 0) return 0;
+
+    // Broadcast the target value to all 4 lanes of a 256-bit register
+    __m256i target_vec = _mm256_set1_epi64x(target);
+    
+    size_t i = 0;
+    // Process elements in blocks of 4
+    for (; i + 3 < size; i += 4) {
+        // Load 4 elements from the array
+        __m256i data_vec = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&data[i]));
+        
+        // Compare target > data_vec elements. 
+        // _mm256_cmpgt_epi64 returns 0xFFFFFFFFFFFFFFFF (-1) if target > data, 0 otherwise.
+        __m256i cmp_mask = _mm256_cmpgt_epi64(target_vec, data_vec);
+        
+        // Move the most significant bit of each 8-bit lane to a 32-bit integer mask.
+        // Each 64-bit element has 8 bytes. If target > data, all 8 bytes have MSB set.
+        int mask = _mm256_movemask_epi8(cmp_mask);
+        
+        // If the mask is not completely filled with 1s (0xFFFFFFFF), 
+        // it means at least one element in this block is >= target.
+        if (mask != 0xFFFFFFFF) {
+            // Find the exact element within this 4-element block
+            if (data[i] >= target)     return i;
+            if (data[i + 1] >= target) return i + 1;
+            if (data[i + 2] >= target) return i + 2;
+            return i + 3;
+        }
+    }
+
+    // Clean up remaining elements (less than 4 left)
+    for (; i < size; ++i) {
+        if (data[i] >= target) {
+            return i;
+        }
+    }
+
+    return size;
+}
+
+const size_t size = 100'000'000;
+
 int main2() {
-    // A sample 32-byte aligned sorted block of 8 integers
-    alignas(32) int32_t block[8] = { 10, 20, 30, 40, 50, 60, 70, 80 };
+    cout << endl;
 
-    int32_t target = 45;
-    int index = search_avx2_block(block, target);
+    // alignas(32) int64_t block2[8] = { 10, 20, 30, 40, 50, 60, 70, 80 };
 
-    int index2 = horizontal_stree_search(block, 1, target);
+    int64_t *block2 = new (std::align_val_t {32}) int64_t[size];
 
-    std::cout << "Target " << target << " belongs at index: " << index << std::endl; 
-    // Output will be 4 (points to 50, since 10,20,30,40 are smaller)
+    for (size_t i = 0; i < size; ++i) {
+      block2[i] = i * 10 + 10;
+    }
 
-    std::cout << "Target " << target << " belongs at index: " << index2 << std::endl; 
+    int32_t target = 100'000;
+
+    auto start = std::chrono::steady_clock::now();
+    auto stop = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    int64_t *index0;
+    int index;
+
+    for (int target = 0; target < 10; ++target) {
+      cout << "===== " << target * 10000 << endl;
+
+      start = std::chrono::steady_clock::now();
+      for (size_t i = 0; i < 100000; ++ i) {
+        index0 = std::lower_bound(block2, block2 + size, target * 10000);
+      }
+      stop = std::chrono::steady_clock::now();
+      duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+      std::cout << duration << "\t" << "Target " << target * 10000 << " belongs at index: " << index0 - block2 << std::endl; 
+
+      // start = std::chrono::steady_clock::now();
+      // for (size_t i = 0; i < 100000; ++ i) {
+      //   index = avx2_lower_bound_i64(block2, size, target * 10000);
+      // }
+      // stop = std::chrono::steady_clock::now();
+      // duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+      // std::cout << duration << "\t" << "Target " << target * 10000 << " belongs at index: " << index << std::endl; 
+
+      start = std::chrono::steady_clock::now();
+      for (size_t i = 0; i < 100000; ++ i) {
+        index = lowerBound2(block2, size, target * 10000);
+      }
+      stop = std::chrono::steady_clock::now();
+      duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+      std::cout << duration << "\t" << "Target " << target * 10000 << " belongs at index: " << index << std::endl; 
+    }
 
     return 0;
 }

@@ -4,11 +4,78 @@
 #include <cstdint>
 #include <algorithm>
 #include <optional>
+#include <bit>
+#include <immintrin.h>
 
 #include "utils.h"
 
 using std::cout;
 using std::endl;
+
+//
+
+inline int search_avx2_block(const int32_t* block, int32_t target) {
+    // 1. Broadcast the search target to all 8 lanes of a YMM register
+    __m256i keys = _mm256_set1_epi32(target);
+
+    // 2. Load the 8 sorted elements from the block (must be 32-byte aligned for performance)
+    __m256i data = _mm256_loadu_si256((const __m256i*)block);
+
+    // 3. Compare: Generates 0xFFFFFFFF where target > data, 0x00000000 otherwise
+    __m256i cmp = _mm256_cmpgt_epi32(keys, data);
+
+    // 4. Extract the sign bits of each lane into an 8-bit integer mask
+    int mask = _mm256_movemask_ps(_mm256_castsi256_ps(cmp));
+
+    // 5. The number of set bits (popcount) gives exactly how many keys are smaller than 'target'
+    // This maps directly to the index of the next child or insertion index.
+    return _mm_popcnt_u32(mask);
+}
+
+int32_t horizontal_stree_search(const int32_t* tree, size_t num_nodes, int32_t target) {
+    size_t node_idx = 0;
+    __m256i v_target = _mm256_set1_epi32(target);
+
+    // Navigate down the tree levels
+    while (node_idx < num_nodes) {
+        // Load all 8 elements of the current node into a SIMD register
+        __m256i v_node = _mm256_loadu_si256((const __m256i*)&tree[node_idx * 8]);
+
+        // Compare target against all 8 elements (returns 0xFFFFFFFF if target > element)
+        __m256i v_cmp = _mm256_cmpgt_epi32(v_target, v_node);
+
+        // Extract comparison results into an 8-bit mask
+        unsigned int mask = _mm256_movemask_ps(_mm256_castsi256_ps(v_cmp));
+
+        // The number of set bits (popcount) gives the number of elements smaller than target
+        // int child_branch = _popcnt32(mask); // Range: 0 to 8
+        int child_branch = std::popcount(mask); // Works on MSVC, GCC, and Clang safely
+
+        // If target is smaller than all elements, branch is 0. If larger than all, branch is 8.
+        // Calculate the next node index
+        node_idx = node_idx * 8 + child_branch + 1;
+    }
+
+    // Leaf fixup and indexing mapping back to sorted array would go here...
+    return -1; 
+}
+
+int main2() {
+    // A sample 32-byte aligned sorted block of 8 integers
+    alignas(32) int32_t block[8] = { 10, 20, 30, 40, 50, 60, 70, 80 };
+
+    int32_t target = 45;
+    int index = search_avx2_block(block, target);
+
+    int index2 = horizontal_stree_search(block, 1, target);
+
+    std::cout << "Target " << target << " belongs at index: " << index << std::endl; 
+    // Output will be 4 (points to 50, since 10,20,30,40 are smaller)
+
+    std::cout << "Target " << target << " belongs at index: " << index2 << std::endl; 
+
+    return 0;
+}
 
 //
 
@@ -116,6 +183,8 @@ int main() {
       ptr += sizeof(Item<0>) + (length + 8 - 1) / 8 * 8;
     }
   }
+
+  main2();
 
   return 0;
 }

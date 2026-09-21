@@ -1,4 +1,4 @@
-// g++ -std=c++20 -mavx2
+// g++ -std=c++20 -O3 -flto
 
 #include <iostream>
 #include <cstdint>
@@ -11,6 +11,65 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+
+enum struct Primitive {
+    NVALID = 0,
+    UINT32 = 4,
+    UINT64 = 8,
+    STRING = 16,
+};
+
+struct Field {
+    Primitive type;
+    const char *name;
+};
+
+Field TeamObject[] = {
+    { Primitive::UINT32, "type" },
+    { Primitive::UINT32, "_padding" },
+    { Primitive::UINT64, "id" },
+    { },
+};
+
+Field ItemObject[] = {
+    { Primitive::UINT32, "type" },
+    { Primitive::UINT32, "_padding" },
+    { Primitive::UINT64, "id" },
+    { Primitive::UINT64, "teamId" },
+    { Primitive::UINT32, "sortOrder" },
+    { Primitive::STRING, "title" },
+    { },
+};
+
+Field *ObjectLookup[] = {
+    TeamObject,
+    ItemObject,
+};
+
+enum struct Type : uint32_t {
+    TEAM = 0,
+    ITEM = 1,
+};
+
+void print(int8_t *record) {
+    auto type = getInt<uint32_t>(record, 0);
+    auto id = getInt<uint32_t>(record, 8);
+
+    size_t offset = 0;
+
+    for (Field *field = ObjectLookup[type]; field->type != static_cast<Primitive>(0); ++field) {
+        switch (field->type) {
+            case Primitive::UINT32:
+                cout << field->name << "\t" << getInt<uint32_t>(record, offset) << endl;
+                break;
+            case Primitive::UINT64:
+                cout << field->name << "\t" << getInt<uint64_t>(record, offset) << endl;
+                break;
+        }
+
+        offset += static_cast<size_t>(field->type);
+    }
+}
 
 //
 
@@ -25,28 +84,21 @@ template<int TTitleLength> struct Item {
     uint32_t _pad1;
     uint64_t id;
     uint64_t teamId;
-    uint32_t _pad2;
+    uint32_t sortOrder;
     String<TTitleLength> title;
 };
 
 struct Data {
-    Team team1 = { TEAM, 0, 1000 };
-    Team team2 = { TEAM, 0, 1001 };
-    Item<4> item1 = { ITEM, 0, 20000, 1000, 0, { 4, { 'A', 'B', 'C', 0 } } };
-    Item<12> item2 = { ITEM, 0, 20001, 1000, 0, { 12, 'D', 'E', 'F', 'G', 'H', 0 } };
-    Item<16> item3 = { ITEM, 0, 20002, 1001, 0, { 16, 'I', 'J', 'K', 'L', 0 } };
-    Item<10> item4 = { ITEM, 0, 20003, 1001, 0, { 10, 'M', 'N', 'O', 0 } };
+    Team team1 = { Type::TEAM, 0, 1000 };
+    Team team2 = { Type::TEAM, 0, 1001 };
+    Item<4> item1 = { Type::ITEM, 0, 20000, 1000, 0, { 4, { 'A', 'B', 'C', 0 } } };
+    Item<12> item2 = { Type::ITEM, 0, 20001, 1000, 1, { 12, 'D', 'E', 'F', 'G', 'H', 0 } };
+    Item<16> item3 = { Type::ITEM, 0, 20002, 1001, 2, { 16, 'I', 'J', 'K', 'L', 0 } };
+    Item<10> item4 = { Type::ITEM, 0, 20003, 1001, 3, { 10, 'M', 'N', 'O', 0 } };
 } data;
-
-template <typename TType>
-struct Index {
-    TType value;
-    size_t offset;
-};
 
 //
 
-// Unique key
 uint64_t itemIdIndex[] = {
     20000, 20001, 20002, 20003,
 };
@@ -57,17 +109,12 @@ uint64_t itemIdIndexData[] = {
 
 //
 
-uint64_t itemTeamIdIndex2[] = {
+uint64_t itemTeamIdIndex[] = {
     1000, 1001,
 };
 
-uint16_t itemTeamIdIndex2Data[] = {
-  0, 120,
-};
-
-// Index deduplication
-Index<uint64_t> itemTeamIdIndex[] = {
-    { 1000, 0 }, { 1001, 2 },
+uint16_t itemTeamIdIndexIndex[] = {
+    0, 2,
 };
 
 // Sorted by teamId, sortOrder
@@ -75,7 +122,27 @@ size_t itemTeamIdIndexData[] = {
     32, 72, 120, 168,
 };
 
+int8_t *findItemWithId(uint64_t id) {
+    auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex), id);
+
+    if (index) {
+        int8_t *ptr = reinterpret_cast<int8_t *>(&data) + itemIdIndexData[*index];
+
+        return ptr;
+    }
+
+    cerr << "Item not found with id " << id << endl;
+
+    return 0;
+}
+
 int main() {
+    auto item = findItemWithId(20000);
+
+    print(item);
+
+    cout << endl;
+
     cout << format("Offset", "Type", "ID", "Team ID", "Length", "Title") << endl;
     cout << format("=======", "=======", "=======", "=======", "=======", "=======") << endl;
 
@@ -85,18 +152,18 @@ int main() {
         auto type = getInt<uint32_t>(ptr, 0);
         auto id = getInt<uint64_t>(ptr, 8);
 
-        if (type == Type::TEAM) {
+        if (static_cast<Type>(type) == Type::TEAM) {
             cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << type << "\t" << id << endl;
 
             ptr += sizeof(Team);
-        } else if (type == Type::ITEM) {
+        } else if (static_cast<Type>(type) == Type::ITEM) {
             auto teamId = getInt<uint64_t>(ptr, 16);
-            auto length = getInt<uint32_t>(ptr, 28);
+            auto titleLength = getInt<uint32_t>(ptr, 28);
             auto title = getString(ptr, 32);
 
-            cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, length, title) << endl;
+            cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, titleLength, title) << endl;
 
-            ptr += sizeof(Item<0>) + (length + 8 - 1) / 8 * 8;
+            ptr += sizeof(Item<0>) + (titleLength + 8 - 1) / 8 * 8;
         } else {
             ptr = 0;
         }
@@ -104,37 +171,43 @@ int main() {
 
     cout << endl;
 
-    auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex) / sizeof(uint64_t), (uint64_t) 20001);
+    auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex), (uint64_t) 20001);
 
     if (index) {
         int8_t *ptr = reinterpret_cast<int8_t *>(&data) + itemIdIndexData[*index];
 
         cout << getInt<uint32_t>(ptr, 0) << "\t" << getInt<uint64_t>(ptr, 8) << endl;
     } else {
-        cerr << "Item not found" << endl;
+        cerr << "Item not found with id " << 20001 << endl;
     }
 
     //
 
-    auto element2 = binarySearch(itemTeamIdIndex, 1000);
+    auto index2 = lowerBound(itemTeamIdIndex, sizeof(itemTeamIdIndex), (uint64_t) 1000);
 
-    if (element2) {
-        ptr = reinterpret_cast<int8_t *>(&data) + itemTeamIdIndexData[(*element2)->offset];
+    if (index2) {
+      cout << "Found item with teamId " << 1000 << " at index " << *index2 << endl;
+    } else {
+      cerr << "Item not found with teamId " << 1000 << endl;
+    }
+
+    if (index2) {
+        ptr = reinterpret_cast<int8_t *>(&data) + itemTeamIdIndexData[itemTeamIdIndexIndex[*index2]];
 
         while (ptr < reinterpret_cast<int8_t *>(&data) + sizeof(data)) {
             auto type = getInt<uint32_t>(ptr, 0);
             auto id = getInt<uint64_t>(ptr, 8);
             auto teamId = getInt<uint64_t>(ptr, 16);
-            auto length = getInt<uint32_t>(ptr, 28);
+            auto titleLength = getInt<uint32_t>(ptr, 28);
             auto title = getString(ptr, 32);
 
             if (teamId != 1000) {
                 break;
             }
 
-            cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, length, title) << endl;
+            cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, titleLength, title) << endl;
 
-            ptr += sizeof(Item<0>) + (length + 8 - 1) / 8 * 8;
+            ptr += sizeof(Item<0>) + (titleLength + 8 - 1) / 8 * 8;
           }
     }
 

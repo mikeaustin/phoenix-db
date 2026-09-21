@@ -3,11 +3,6 @@ template<int TLength> struct String {
     char8_t title[TLength];
 };
 
-enum Type : uint32_t {
-    TEAM = 100,
-    ITEM = 200,
-};
-
 //
 
 template <typename T>
@@ -25,28 +20,9 @@ char *getString(int8_t *data, size_t offset) {
 
 //
 
-template <typename TArray, size_t N, typename TValue>
-std::optional<TArray *> binarySearch(TArray (&array)[N], TValue value) {
-    size_t low = 0, high = N - 1;
-
-    while (low <= high) {
-        auto mid = low + (high - low) / 2;
-
-        if (array[mid].value == value) {
-            return &array[mid];
-        } else if (array[mid].value < value) {
-            low = mid + 1;
-        } else {
-            high = mid - 1;
-        }
-    }
-
-    return std::nullopt;
-}
-
 template <typename T>
-std::optional<size_t> lowerBound(T *array, size_t size, T value) {
-    int left = 0, right = size - 1;
+std::optional<size_t> lowerBound(T *array, size_t count, T value) {
+    int left = 0, right = count / sizeof(T) - 1;
 
     while (left < right) {
         int mid = left + (right - left) / 2; 

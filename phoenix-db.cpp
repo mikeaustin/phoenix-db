@@ -12,26 +12,19 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-enum struct Primitive {
-    NVALID = 0,
-    UINT32 = 4,
-    UINT64 = 8,
-    STRING = 16,
-};
-
 struct Field {
     Primitive type;
     const char *name;
 };
 
-Field TeamObject[] = {
+Field teamTable[] = {
     { Primitive::UINT32, "type" },
     { Primitive::UINT32, "_padding" },
     { Primitive::UINT64, "id" },
     { },
 };
 
-Field ItemObject[] = {
+Field itemTable[] = {
     { Primitive::UINT32, "type" },
     { Primitive::UINT32, "_padding" },
     { Primitive::UINT64, "id" },
@@ -41,9 +34,9 @@ Field ItemObject[] = {
     { },
 };
 
-Field *ObjectLookup[] = {
-    TeamObject,
-    ItemObject,
+Field *tables[] = {
+    teamTable,
+    itemTable,
 };
 
 enum struct Type : uint32_t {
@@ -57,13 +50,16 @@ void print(int8_t *record) {
 
     size_t offset = 0;
 
-    for (Field *field = ObjectLookup[type]; field->type != static_cast<Primitive>(0); ++field) {
+    for (Field *field = tables[type]; field->type != static_cast<Primitive>(0); ++field) {
         switch (field->type) {
             case Primitive::UINT32:
                 cout << field->name << "\t" << getInt<uint32_t>(record, offset) << endl;
                 break;
             case Primitive::UINT64:
                 cout << field->name << "\t" << getInt<uint64_t>(record, offset) << endl;
+                break;
+            case Primitive::STRING:
+                cout << field->name << "\t" << getString(record, offset + 4) << endl;
                 break;
         }
 

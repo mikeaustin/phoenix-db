@@ -1,3 +1,10 @@
+enum struct Primitive {
+    NVALID = 0,
+    UINT32 = 4,
+    UINT64 = 8,
+    STRING = 16,
+};
+
 template<int TLength> struct String {
     int32_t length;
     char8_t title[TLength];

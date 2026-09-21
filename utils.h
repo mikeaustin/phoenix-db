@@ -45,7 +45,7 @@ std::optional<TArray *> binarySearch(TArray (&array)[N], TValue value) {
 }
 
 template <typename T>
-size_t lowerBound(T *array, size_t size, T value) {
+std::optional<size_t> lowerBound(T *array, size_t size, T value) {
     int left = 0, right = size - 1;
 
     while (left < right) {
@@ -58,7 +58,11 @@ size_t lowerBound(T *array, size_t size, T value) {
         }
     }
 
-    return left;
+    if (array[left] == value) {
+      return left;
+    }
+
+    return std::nullopt;
 }
 
 //

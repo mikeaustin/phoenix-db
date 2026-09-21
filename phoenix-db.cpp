@@ -9,11 +9,8 @@
 #include "utils.h"
 
 using std::cout;
+using std::cerr;
 using std::endl;
-
-//
-
-
 
 //
 
@@ -49,23 +46,32 @@ struct Index {
 
 //
 
-Index<uint64_t> indexData[] = {
-    { 1000, 0 }, { 1001, 2 },
-};
-
-size_t itemTeamOrderedIndex[] = {
-    32, 72, 120, 168,
-};
-
-Index<uint64_t> itemIdIndex[] = {
-    { 20000, 32 }, { 20001, 72 }, { 20002, 120 }, { 20003, 168 },
-};
-
-uint64_t itemIdIndex2[] = {
+// Unique key
+uint64_t itemIdIndex[] = {
     20000, 20001, 20002, 20003,
 };
 
 uint64_t itemIdIndexData[] = {
+    32, 72, 120, 168,
+};
+
+//
+
+uint64_t itemTeamIdIndex2[] = {
+    1000, 1001,
+};
+
+uint16_t itemTeamIdIndex2Data[] = {
+  0, 120,
+};
+
+// Index deduplication
+Index<uint64_t> itemTeamIdIndex[] = {
+    { 1000, 0 }, { 1001, 2 },
+};
+
+// Sorted by teamId, sortOrder
+size_t itemTeamIdIndexData[] = {
     32, 72, 120, 168,
 };
 
@@ -98,23 +104,22 @@ int main() {
 
     cout << endl;
 
-    auto element = binarySearch(itemIdIndex, 20001);
-    auto element3 = lowerBound(itemIdIndex2, sizeof(itemIdIndex2) / sizeof(uint64_t), (uint64_t) 20001);
+    auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex) / sizeof(uint64_t), (uint64_t) 20001);
 
-    cout << itemIdIndexData[element3] << endl;
-
-    if (element) {
-        int8_t *ptr = reinterpret_cast<int8_t *>(&data) + (*element)->offset;
+    if (index) {
+        int8_t *ptr = reinterpret_cast<int8_t *>(&data) + itemIdIndexData[*index];
 
         cout << getInt<uint32_t>(ptr, 0) << "\t" << getInt<uint64_t>(ptr, 8) << endl;
+    } else {
+        cerr << "Item not found" << endl;
     }
 
     //
 
-    auto element2 = binarySearch(indexData, 1000);
+    auto element2 = binarySearch(itemTeamIdIndex, 1000);
 
-    if (element) {
-        ptr = reinterpret_cast<int8_t *>(&data) + itemTeamOrderedIndex[(*element2)->offset];
+    if (element2) {
+        ptr = reinterpret_cast<int8_t *>(&data) + itemTeamIdIndexData[(*element2)->offset];
 
         while (ptr < reinterpret_cast<int8_t *>(&data) + sizeof(data)) {
             auto type = getInt<uint32_t>(ptr, 0);

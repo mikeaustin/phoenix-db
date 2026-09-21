@@ -44,38 +44,44 @@ std::optional<TArray *> binarySearch(TArray (&array)[N], TValue value) {
   return std::nullopt;
 }
 
-inline size_t lowerBound(const int64_t *array, size_t size, int64_t value) {
-  size_t low = 0, high = size - 1;
+int lowerBound(const int64_t *array, size_t size, int64_t value) {
+  int left = 0, right = size - 1;
 
-  while (low <= high) {
-    auto mid = low + (high - low) / 2;
+  while (left < right) {
+      int mid = left + (right - left) / 2; 
 
-    if (array[mid] == value) {
-      return mid;
-    } else if (array[mid] < value) {
-      low = mid + 1;
-    } else {
-      high = mid - 1;
-    }
+      if (array[mid] >= value) {
+          right = mid;
+      } else {
+          left = mid + 1;
+      }
   }
 
-  return high;
+  return left;
 }
 
-int lowerBound2(const int64_t *array, size_t size, int64_t value) {
-    int low = 0, high = size;
+const int block_size = 16; // Cache line size / sizeof(int)
 
-    while (low < high) {
-        int mid = low + (high - low) / 2; 
-
-        if (array[mid] >= value) {
-            high = mid;
-        } else {
-            low = mid + 1;
-        }
+// Preprocess standard sorted array 'a' into Eytzinger array 'b'
+int eytzinger_init(int64_t *a, int64_t *b, int n, int i = 0, int k = 1) {
+    if (k <= n) {
+        i = eytzinger_init(a, b, n, i, 2 * k);
+        b[k] = a[i++];
+        i = eytzinger_init(a, b, n, i, 2 * k + 1);
     }
+    return i;
+}
 
-    return low;
+// Fast lower_bound search in Eytzinger array 'b' of size 'n'
+int eytzinger_lower_bound(const int64_t* b, int n, int x) {
+    int k = 1;
+    while (k <= n) {
+        __builtin_prefetch(b + k * block_size);
+        k = 2 * k + (b[k] < x);
+    }
+    k >>= __builtin_ffs(~k); // Backtrack to find the actual lower bound
+
+    return k;
 }
 
 //

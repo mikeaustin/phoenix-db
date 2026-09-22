@@ -101,3 +101,16 @@ template <typename T1, typename T2 = const char *, typename T3 = const char *, t
 FormatWrapper<T1, T2, T3, T4, T5, T6, T7> format(const T1& a, const T2& b = "", const T3& c = "", const T4& d = "", const T5& e = "", const T6& f = "", const T7& g = "") {
   return FormatWrapper { a, b, c, d, e, f, g };
 }
+
+struct repeat {
+    const char *string;
+    size_t count;
+
+    friend std::ostream& operator <<(std::ostream& ostream, const repeat& repeat) {
+        for (size_t i = 0; i < repeat.count; ++i) {
+            ostream << std::left << std::setw(16) << repeat.string;
+        }
+
+        return ostream;
+    }
+};

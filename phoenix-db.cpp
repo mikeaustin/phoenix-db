@@ -115,7 +115,6 @@ uint16_t itemTeamIdIndexIndex[] = {
     0, 2,
 };
 
-// Sorted by teamId, sortOrder
 size_t itemTeamIdIndexData[] = {
     72, 32, 176, 120,
 };
@@ -142,7 +141,7 @@ int main() {
     cout << endl;
 
     cout << format("Offset", "Type", "ID", "Team ID", "Length", "Title") << endl;
-    cout << format("===============", "===============", "===============", "===============", "===============", "===============") << endl;
+    cout << repeat("===============", 6) << endl;
 
     uint8_t *ptr = reinterpret_cast<uint8_t *>(&data);
 

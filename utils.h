@@ -23,7 +23,7 @@ struct String {
 //
 
 template <typename T>
-T getInt(int8_t *data, size_t offset) {
+T getInt(uint8_t *data, size_t offset) {
     if (reinterpret_cast<size_t>(data) % sizeof(T) != 0 || offset % sizeof(T) != 0) {
       throw new std::invalid_argument("Alignment error");
     }
@@ -31,7 +31,7 @@ T getInt(int8_t *data, size_t offset) {
     return *reinterpret_cast<T *>(data + offset);
 }
 
-String getString(int8_t *data, size_t offset) {
+String getString(uint8_t *data, size_t offset) {
     auto length = getInt<uint32_t>(data, offset);
 
     return {

@@ -5,12 +5,17 @@ enum struct Primitive :uint32_t {
     STRING = 16,
 };
 
-template<int TLength> struct String {
-    int32_t length;
-    char8_t title[TLength];
+struct Field {
+    Primitive type;
+    const char *name;
 };
 
-struct _String {
+struct Table {
+    const char *name;
+    Field *fields;
+};
+
+struct String {
   uint32_t length;
   char *data;
 };
@@ -26,7 +31,7 @@ T getInt(int8_t *data, size_t offset) {
     return *reinterpret_cast<T *>(data + offset);
 }
 
-_String getString(int8_t *data, size_t offset) {
+String getString(int8_t *data, size_t offset) {
     auto length = getInt<uint32_t>(data, offset);
 
     return {

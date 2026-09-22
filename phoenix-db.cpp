@@ -12,19 +12,14 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-struct Field {
-    Primitive type;
-    const char *name;
-};
-
-Field teamTable[] = {
+Field teamFields[] = {
     { Primitive::UINT32, "type" },
     { Primitive::UINT32, "_padding" },
     { Primitive::UINT64, "id" },
     { },
 };
 
-Field itemTable[] = {
+Field itemFields[] = {
     { Primitive::UINT32, "type" },
     { Primitive::UINT32, "_padding" },
     { Primitive::UINT64, "id" },
@@ -34,9 +29,9 @@ Field itemTable[] = {
     { },
 };
 
-Field *tables[] = {
-    teamTable,
-    itemTable,
+Table tables[] = {
+    "teams", teamFields,
+    "items", itemFields,
 };
 
 enum struct Type : uint32_t {
@@ -50,7 +45,7 @@ void print(int8_t *record) {
 
     size_t offset = 0;
 
-    for (Field *field = tables[type]; field->type != static_cast<Primitive>(0); ++field) {
+    for (Field *field = tables[type].fields; field->type != Primitive::NVALID; ++field) {
         switch (field->type) {
             case Primitive::UINT32:
                 cout << std::left << std::setw(16) << field->name << getInt<uint32_t>(record, offset) << endl;
@@ -65,11 +60,16 @@ void print(int8_t *record) {
                 break;
         }
 
-        offset += field->type == Primitive::STRING ? 0 : static_cast<size_t>(field->type);
+        offset += field->type == Primitive::STRING ? 4 : static_cast<size_t>(field->type);
     }
 }
 
 //
+
+template<int TLength> struct _String {
+    int32_t length;
+    char8_t title[TLength];
+};
 
 struct Team {
     Type type;
@@ -83,7 +83,7 @@ template<int TTitleLength> struct Item {
     uint64_t id;
     uint64_t teamId;
     uint32_t sortOrder;
-    String<TTitleLength> title;
+    _String<TTitleLength> title;
 };
 
 struct Data {

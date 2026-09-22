@@ -1,8 +1,15 @@
-enum struct Primitive :uint32_t {
+enum struct Primitive : uint32_t {
     NVALID = 0,
-    UINT32 = 4,
-    UINT64 = 8,
-    STRING = 16,
+    UINT32 = 1,
+    UINT64 = 2,
+    STRING = 3,
+};
+
+size_t primitiveSizes[] = {
+  0,
+  4,
+  8,
+  4,
 };
 
 struct Field {

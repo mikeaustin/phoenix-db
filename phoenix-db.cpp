@@ -53,14 +53,14 @@ void print(int8_t *record) {
     for (Field *field = tables[type]; field->type != static_cast<Primitive>(0); ++field) {
         switch (field->type) {
             case Primitive::UINT32:
-                cout << field->name << "\t" << getInt<uint32_t>(record, offset) << endl;
+                cout << std::left << std::setw(16) << field->name << getInt<uint32_t>(record, offset) << endl;
                 break;
             case Primitive::UINT64:
-                cout << field->name << "\t" << getInt<uint64_t>(record, offset) << endl;
+                cout << std::left << std::setw(16) << field->name << getInt<uint64_t>(record, offset) << endl;
                 break;
             case Primitive::STRING:
                 auto string = getString(record, offset);
-                cout << field->name << "\t" << string.data << endl;
+                cout << std::left << std::setw(16) << field->name << string.data << endl;
                 offset += (string.length + 8 - 1) / 8 * 8;
                 break;
         }

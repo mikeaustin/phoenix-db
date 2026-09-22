@@ -29,7 +29,7 @@ Field itemFields[] = {
     { },
 };
 
-Table schemas[] = {
+Schema schemas[] = {
     "team", teamFields,
     "item", itemFields,
 };
@@ -95,6 +95,18 @@ struct Data {
     Item<28> item4 = { Type::ITEM, 0, 2003, 101, 0, { 28, { 'J', 'K', 'L', 0 } } };
 } data;
 
+struct Teams {
+    Team team1 = { Type::TEAM, 0, 100 };
+    Team team2 = { Type::TEAM, 0, 101 };
+} teams;
+
+struct Items {
+    Item<4> item1 = { Type::ITEM, 0, 2000, 100, 3, { 4, { 'A', 'B', 'C', 0 } } };
+    Item<12> item2 = { Type::ITEM, 0, 2001, 100, 2, { 12, { 'D', 'E', 'F', 0 } } };
+    Item<20> item3 = { Type::ITEM, 0, 2002, 101, 1, { 20, { 'G', 'H', 'I', 0 } } };
+    Item<28> item4 = { Type::ITEM, 0, 2003, 101, 0, { 28, { 'J', 'K', 'L', 0 } } };
+} items;
+
 //
 
 uint64_t itemIdIndex[] = {
@@ -102,7 +114,7 @@ uint64_t itemIdIndex[] = {
 };
 
 uint64_t itemIdIndexData[] = {
-    32, 72, 120, 168,
+    0, 40, 88, 144,
 };
 
 //
@@ -116,14 +128,14 @@ uint16_t itemTeamIdIndexIndex[] = {
 };
 
 size_t itemTeamIdIndexData[] = {
-    72, 32, 176, 120,
+    40, 0, 144, 88,
 };
 
 uint8_t *findItemWithId(uint64_t id) {
     auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex), id);
 
     if (index) {
-        uint8_t *ptr = reinterpret_cast<uint8_t *>(&data) + itemIdIndexData[*index];
+        uint8_t *ptr = reinterpret_cast<uint8_t *>(&items) + itemIdIndexData[*index];
 
         return ptr;
     }
@@ -138,42 +150,50 @@ int main() {
 
     print(item);
 
-    cout << endl;
+    cout << endl << "TEAMS" << endl << endl;
 
-    cout << format("Offset", "Type", "ID", "Team ID", "Length", "Title") << endl;
-    cout << repeat("===============", 6) << endl;
+    cout << format("Offset", "ID") << endl;
+    cout << repeat("===============", 2) << endl;
 
-    uint8_t *ptr = reinterpret_cast<uint8_t *>(&data);
+    auto ptr = reinterpret_cast<uint8_t *>(&teams);
 
-    while (ptr < reinterpret_cast<uint8_t *>(&data) + sizeof(data)) {
+    while (ptr < reinterpret_cast<uint8_t *>(&teams) + sizeof(teams)) {
         auto type = getInt<uint32_t>(ptr, 0);
         auto id = getInt<uint64_t>(ptr, 8);
 
-        if (static_cast<Type>(type) == Type::TEAM) {
-            cout << format( ptr - reinterpret_cast<uint8_t *>(&data), schemas[type].name, id) << endl;
+        cout << format(ptr - reinterpret_cast<uint8_t *>(&teams), id) << endl;
 
-            ptr += sizeof(Team);
-        } else if (static_cast<Type>(type) == Type::ITEM) {
-            auto teamId = getInt<uint64_t>(ptr, 16);
-            auto title = getString(ptr, 28);
-
-            cout << format(ptr - reinterpret_cast<uint8_t *>(&data), schemas[type].name, id, teamId, title.length, title.data) << endl;
-
-            ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
-        } else {
-            ptr = 0;
-        }
+        ptr += sizeof(Team);
     }
 
-    cout << endl;
+    cout << endl << "ITEMS" << endl << endl;
 
-    //
+    cout << format("Offset", "ID", "Team ID", "Length", "Title") << endl;
+    cout << repeat("===============", 5) << endl;
 
-    auto index2 = lowerBound(itemTeamIdIndex, sizeof(itemTeamIdIndex), (uint64_t) 100);
+    ptr = reinterpret_cast<uint8_t *>(&items);
 
-    if (index2) {
-        for (size_t index = itemTeamIdIndexIndex[*index2]; index < sizeof(itemTeamIdIndexData) / sizeof(size_t) ; ++index) {
-            ptr = &reinterpret_cast<uint8_t *>(&data)[itemTeamIdIndexData[index]];
+    while (ptr < reinterpret_cast<uint8_t *>(&items) + sizeof(items)) {
+        auto type = getInt<uint32_t>(ptr, 0);
+        auto id = getInt<uint64_t>(ptr, 8);
+        auto teamId = getInt<uint64_t>(ptr, 16);
+        auto title = getString(ptr, 28);
+
+        cout << format(ptr - reinterpret_cast<uint8_t *>(&items), id, teamId, title.length, title.data) << endl;
+
+        ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
+    }
+
+    cout << endl << "ITEMS WITH TEAM_ID = 100 SORTED BY SORT_ORDER" << endl << endl;
+
+    cout << format("Offset", "ID", "Team ID", "Length", "Title") << endl;
+    cout << repeat("===============", 5) << endl;
+
+    auto index3 = lowerBound(itemTeamIdIndex, sizeof(itemTeamIdIndex), (uint64_t) 100);
+
+    if (index3) {
+        for (size_t index = itemTeamIdIndexIndex[*index3]; index < sizeof(itemTeamIdIndexData) ; ++index) {
+            ptr = &reinterpret_cast<uint8_t *>(&items)[itemTeamIdIndexData[index]];
 
             auto type = getInt<uint32_t>(ptr, 0);
             auto id = getInt<uint64_t>(ptr, 8);
@@ -184,11 +204,9 @@ int main() {
                 break;
             }
 
-            cout << format(ptr - reinterpret_cast<uint8_t *>(&data), schemas[type].name, id, teamId, title.length, title.data) << endl;
+            cout << format(ptr - reinterpret_cast<uint8_t *>(&items), id, teamId, title.length, title.data) << endl;
         };
     }
-
-    // benchmark();
 
     return 0;
 }

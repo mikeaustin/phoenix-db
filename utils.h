@@ -19,7 +19,7 @@ struct Field {
     const char *name;
 };
 
-struct Table {
+struct Schema {
     const char *name;
     Field *fields;
 };
@@ -52,8 +52,8 @@ String getString(uint8_t *data, size_t offset) {
 //
 
 template <typename T>
-std::optional<size_t> lowerBound(T *array, size_t count, T value) {
-    int left = 0, right = count / sizeof(T) - 1;
+std::optional<size_t> lowerBound(T *array, size_t size, T value) {
+    int left = 0, right = size / sizeof(T) - 1;
 
     while (left < right) {
         int mid = left + (right - left) / 2; 

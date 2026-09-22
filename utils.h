@@ -38,6 +38,10 @@ struct String {
 
 //
 
+uint8_t *getRecord(void *records, size_t offset) {
+    return reinterpret_cast<uint8_t *>(records) + offset;
+}
+
 template <typename T>
 T getInt(uint8_t *data, size_t offset) {
     if (reinterpret_cast<size_t>(data) % sizeof(T) != 0 || offset % sizeof(T) != 0) {

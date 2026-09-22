@@ -77,7 +77,7 @@ std::optional<Record> findItemWithId(uint64_t id) {
     auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex), id);
 
     if (index) {
-        uint8_t *ptr = reinterpret_cast<uint8_t *>(&items) + itemIdIndexData[*index];
+        auto ptr = getRecord(&items, itemIdIndexData[*index]);
 
         return Record { itemFields, ptr };
     }
@@ -87,6 +87,10 @@ std::optional<Record> findItemWithId(uint64_t id) {
     return std::nullopt;
 }
 
+//
+//
+//
+
 int main() {
     {
         cout << "TEAMS" << endl << endl;
@@ -94,14 +98,16 @@ int main() {
         cout << format("Offset", "ID") << endl;
         cout << repeat("===============", 2) << endl;
 
-        auto ptr = reinterpret_cast<uint8_t *>(&teams);
+        auto first = getRecord(&teams, 0),
+             last = getRecord(&teams, sizeof(teams)),
+             record = first;
 
-        while (ptr < reinterpret_cast<uint8_t *>(&teams) + sizeof(teams)) {
-            auto id = getInt<uint64_t>(ptr, 0);
+        while (record < last) {
+            auto id = getInt<uint64_t>(record, 0);
 
-            cout << format(ptr - reinterpret_cast<uint8_t *>(&teams), id) << endl;
+            cout << format(record - first, id) << endl;
 
-            ptr += sizeof(Team);
+            record += sizeof(Team);
         }
     }
 
@@ -111,17 +117,19 @@ int main() {
         cout << format("Offset", "ID", "Team ID", "Sort Order", "Length", "Title") << endl;
         cout << repeat("===============", 6) << endl;
 
-        auto ptr = reinterpret_cast<uint8_t *>(&items);
+        auto first = getRecord(&items, 0),
+             last = getRecord(&items, sizeof(items)),
+             record = first;
 
-        while (ptr < reinterpret_cast<uint8_t *>(&items) + sizeof(items)) {
-            auto id = getInt<uint64_t>(ptr, 0);
-            auto teamId = getInt<uint64_t>(ptr, 8);
-            auto sortOrder = getInt<uint32_t>(ptr, 16);
-            auto title = getString(ptr, 20);
+        while (record < last) {
+            auto id = getInt<uint64_t>(record, 0);
+            auto teamId = getInt<uint64_t>(record, 8);
+            auto sortOrder = getInt<uint32_t>(record, 16);
+            auto title = getString(record, 20);
 
-            cout << format(ptr - reinterpret_cast<uint8_t *>(&items), id, teamId, sortOrder, title.length, title.data) << endl;
+            cout << format(record - first, id, teamId, sortOrder, title.length, title.data) << endl;
 
-            ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
+            record += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
         }
     }
 
@@ -145,18 +153,18 @@ int main() {
 
         if (index3) {
             for (size_t index = itemTeamIdIndexIndex[*index3]; index < sizeof(itemTeamIdIndexIndexData) ; ++index) {
-                auto ptr = &reinterpret_cast<uint8_t *>(&items)[itemTeamIdIndexIndexData[index]];
+                auto record = getRecord(&items, itemTeamIdIndexIndexData[index]);
 
-                auto id = getInt<uint64_t>(ptr, 0);
-                auto teamId = getInt<uint64_t>(ptr, 8);
-                auto sortOrder = getInt<uint32_t>(ptr, 16);
-                auto title = getString(ptr, 20);
+                auto id = getInt<uint64_t>(record, 0);
+                auto teamId = getInt<uint64_t>(record, 8);
+                auto sortOrder = getInt<uint32_t>(record, 16);
+                auto title = getString(record, 20);
 
                 if (teamId != 100) {
                     break;
                 }
 
-                cout << format(ptr - reinterpret_cast<uint8_t *>(&items), id, teamId, sortOrder, title.length, title.data) << endl;
+                cout << format(record - reinterpret_cast<uint8_t *>(&items), id, teamId, sortOrder, title.length, title.data) << endl;
             };
         }
     }

@@ -142,7 +142,7 @@ int main() {
     cout << endl;
 
     cout << format("Offset", "Type", "ID", "Team ID", "Length", "Title") << endl;
-    cout << format("=======", "=======", "=======", "=======", "=======", "=======") << endl;
+    cout << format("===============", "===============", "===============", "===============", "===============", "===============") << endl;
 
     uint8_t *ptr = reinterpret_cast<uint8_t *>(&data);
 
@@ -151,14 +151,14 @@ int main() {
         auto id = getInt<uint64_t>(ptr, 8);
 
         if (static_cast<Type>(type) == Type::TEAM) {
-            cout << ptr - reinterpret_cast<uint8_t *>(&data) << "\t" << type << "\t" << id << endl;
+            cout << format( ptr - reinterpret_cast<uint8_t *>(&data), type, id) << endl;
 
             ptr += sizeof(Team);
         } else if (static_cast<Type>(type) == Type::ITEM) {
             auto teamId = getInt<uint64_t>(ptr, 16);
             auto title = getString(ptr, 28);
 
-            cout << ptr - reinterpret_cast<uint8_t *>(&data) << "\t" << format(type, id, teamId, title.length, title.data) << endl;
+            cout << format(ptr - reinterpret_cast<uint8_t *>(&data), type, id, teamId, title.length, title.data) << endl;
 
             ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
         } else {
@@ -185,7 +185,7 @@ int main() {
                 break;
             }
 
-            cout << ptr - reinterpret_cast<uint8_t *>(&data) << "\t" << format(type, id, teamId, title.length, title.data) << endl;
+            cout << format(ptr - reinterpret_cast<uint8_t *>(&data), type, id, teamId, title.length, title.data) << endl;
         };
     }
 

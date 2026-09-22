@@ -72,7 +72,7 @@ std::optional<size_t> lowerBound(T *array, size_t count, T value) {
 
 //
 
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
 struct FormatWrapper {
   const T1& a;
   const T2& b;
@@ -80,16 +80,24 @@ struct FormatWrapper {
   const T4& d;
   const T5& e;
   const T6& f;
+  const T7& g;
 };
 
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-std::ostream& operator <<(std::ostream& ostream, const FormatWrapper<T1, T2, T3, T4, T5, T6>& wrapper) {
-    ostream << wrapper.a << "\t" << wrapper.b << "\t" << wrapper.c << "\t" << wrapper.d << "\t" << wrapper.e << "\t" << wrapper.f;
+template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+std::ostream& operator <<(std::ostream& ostream, const FormatWrapper<T1, T2, T3, T4, T5, T6, T7>& wrapper) {
+    ostream << std::left
+      << std::setw(16) << wrapper.a
+      << std::setw(16) << wrapper.b
+      << std::setw(16) << wrapper.c
+      << std::setw(16) << wrapper.d
+      << std::setw(16) << wrapper.e
+      << std::setw(16) << wrapper.f
+      << std::setw(16) << wrapper.g;
 
     return ostream;
 }
 
-template <typename T1, typename T2 = const char *, typename T3 = const char *, typename T4 = const char *, typename T5 = const char *, typename T6 = const char *>
-FormatWrapper<T1, T2, T3, T4, T5, T6> format(const T1& a, const T2& b = "", const T3& c = "", const T4& d = "", const T5& e = "", const T6& f = "") {
-  return FormatWrapper { a, b, c, d, e, f };
+template <typename T1, typename T2 = const char *, typename T3 = const char *, typename T4 = const char *, typename T5 = const char *, typename T6 = const char *, typename T7 = const char *>
+FormatWrapper<T1, T2, T3, T4, T5, T6, T7> format(const T1& a, const T2& b = "", const T3& c = "", const T4& d = "", const T5& e = "", const T6& f = "", const T7& g = "") {
+  return FormatWrapper { a, b, c, d, e, f, g };
 }

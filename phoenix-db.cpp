@@ -59,11 +59,13 @@ void print(int8_t *record) {
                 cout << field->name << "\t" << getInt<uint64_t>(record, offset) << endl;
                 break;
             case Primitive::STRING:
-                cout << field->name << "\t" << getString(record, offset + 4) << endl;
+                auto string = getString(record, offset);
+                cout << field->name << "\t" << string.data << endl;
+                offset += (string.length + 8 - 1) / 8 * 8;
                 break;
         }
 
-        offset += static_cast<size_t>(field->type);
+        offset += field->type == Primitive::STRING ? 0 : static_cast<size_t>(field->type);
     }
 }
 
@@ -154,12 +156,11 @@ int main() {
             ptr += sizeof(Team);
         } else if (static_cast<Type>(type) == Type::ITEM) {
             auto teamId = getInt<uint64_t>(ptr, 16);
-            auto titleLength = getInt<uint32_t>(ptr, 28);
-            auto title = getString(ptr, 32);
+            auto title = getString(ptr, 28);
 
-            cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, titleLength, title) << endl;
+            cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, title.length, title.data) << endl;
 
-            ptr += sizeof(Item<0>) + (titleLength + 8 - 1) / 8 * 8;
+            ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
         } else {
             ptr = 0;
         }
@@ -194,16 +195,15 @@ int main() {
             auto type = getInt<uint32_t>(ptr, 0);
             auto id = getInt<uint64_t>(ptr, 8);
             auto teamId = getInt<uint64_t>(ptr, 16);
-            auto titleLength = getInt<uint32_t>(ptr, 28);
-            auto title = getString(ptr, 32);
+            auto title = getString(ptr, 28);
 
             if (teamId != 1000) {
                 break;
             }
 
-            cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, titleLength, title) << endl;
+            cout << ptr - reinterpret_cast<int8_t *>(&data) << "\t" << format(type, id, teamId, title.length, title.data) << endl;
 
-            ptr += sizeof(Item<0>) + (titleLength + 8 - 1) / 8 * 8;
+            ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
           }
     }
 

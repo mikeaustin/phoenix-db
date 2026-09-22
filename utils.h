@@ -1,4 +1,4 @@
-enum struct Primitive {
+enum struct Primitive :uint32_t {
     NVALID = 0,
     UINT32 = 4,
     UINT64 = 8,
@@ -8,6 +8,11 @@ enum struct Primitive {
 template<int TLength> struct String {
     int32_t length;
     char8_t title[TLength];
+};
+
+struct _String {
+  uint32_t length;
+  char *data;
 };
 
 //
@@ -21,8 +26,13 @@ T getInt(int8_t *data, size_t offset) {
     return *reinterpret_cast<T *>(data + offset);
 }
 
-char *getString(int8_t *data, size_t offset) {
-    return reinterpret_cast<char *>(data + offset);
+_String getString(int8_t *data, size_t offset) {
+    auto length = getInt<uint32_t>(data, offset);
+
+    return {
+      length,
+      reinterpret_cast<char *>(data + 4 + offset)
+    };
 }
 
 //

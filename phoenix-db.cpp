@@ -1,10 +1,6 @@
 // g++ -std=c++20 -O3 -flto
 
 #include <iostream>
-#include <cstdint>
-#include <algorithm>
-#include <optional>
-#include <chrono>
 
 #include "utils.h"
 
@@ -23,16 +19,6 @@ Field itemFields[] = {
     { Primitive::UINT32, "sortOrder" },
     { Primitive::STRING, "title" },
     { },
-};
-
-Schema schemas[] = {
-    "team", teamFields,
-    "item", itemFields,
-};
-
-enum struct Type : uint32_t {
-    TEAM = 0,
-    ITEM = 1,
 };
 
 //
@@ -87,13 +73,13 @@ size_t itemTeamIdIndexIndexData[] = {
     32, 0, 120, 72,
 };
 
-std::optional<uint8_t *> findItemWithId(uint64_t id) {
+std::optional<Record> findItemWithId(uint64_t id) {
     auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex), id);
 
     if (index) {
         uint8_t *ptr = reinterpret_cast<uint8_t *>(&items) + itemIdIndexData[*index];
 
-        return ptr;
+        return Record { itemFields, ptr };
     }
 
     cerr << "Item not found with id " << id << endl;
@@ -102,67 +88,77 @@ std::optional<uint8_t *> findItemWithId(uint64_t id) {
 }
 
 int main() {
-    cout << "TEAMS" << endl << endl;
+    {
+        cout << "TEAMS" << endl << endl;
 
-    cout << format("Offset", "ID") << endl;
-    cout << repeat("===============", 2) << endl;
+        cout << format("Offset", "ID") << endl;
+        cout << repeat("===============", 2) << endl;
 
-    auto ptr = reinterpret_cast<uint8_t *>(&teams);
+        auto ptr = reinterpret_cast<uint8_t *>(&teams);
 
-    while (ptr < reinterpret_cast<uint8_t *>(&teams) + sizeof(teams)) {
-        auto id = getInt<uint64_t>(ptr, 0);
+        while (ptr < reinterpret_cast<uint8_t *>(&teams) + sizeof(teams)) {
+            auto id = getInt<uint64_t>(ptr, 0);
 
-        cout << format(ptr - reinterpret_cast<uint8_t *>(&teams), id) << endl;
+            cout << format(ptr - reinterpret_cast<uint8_t *>(&teams), id) << endl;
 
-        ptr += sizeof(Team);
+            ptr += sizeof(Team);
+        }
     }
 
-    cout << endl << "ITEMS" << endl << endl;
+    {
+        cout << endl << "ITEMS" << endl << endl;
 
-    cout << format("Offset", "ID", "Team ID", "Length", "Title") << endl;
-    cout << repeat("===============", 5) << endl;
+        cout << format("Offset", "ID", "Team ID", "Sort Order", "Length", "Title") << endl;
+        cout << repeat("===============", 6) << endl;
 
-    ptr = reinterpret_cast<uint8_t *>(&items);
+        auto ptr = reinterpret_cast<uint8_t *>(&items);
 
-    while (ptr < reinterpret_cast<uint8_t *>(&items) + sizeof(items)) {
-        auto id = getInt<uint64_t>(ptr, 0);
-        auto teamId = getInt<uint64_t>(ptr, 8);
-        auto title = getString(ptr, 20);
-
-        cout << format(ptr - reinterpret_cast<uint8_t *>(&items), id, teamId, title.length, title.data) << endl;
-
-        ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
-    }
-
-    cout << endl << "ITEM WHERE ID = 2000" << endl << endl;
-
-    auto item = findItemWithId(2000);
-
-    if (item) {
-       print(schemas[static_cast<int>(Type::ITEM)], *item);
-    }
-
-    cout << endl << "ITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER" << endl << endl;
-
-    cout << format("Offset", "ID", "Team ID", "Length", "Title") << endl;
-    cout << repeat("===============", 5) << endl;
-
-    auto index3 = lowerBound(itemTeamIdIndex, sizeof(itemTeamIdIndex), (uint64_t) 100);
-
-    if (index3) {
-        for (size_t index = itemTeamIdIndexIndex[*index3]; index < sizeof(itemTeamIdIndexIndexData) ; ++index) {
-            ptr = &reinterpret_cast<uint8_t *>(&items)[itemTeamIdIndexIndexData[index]];
-
+        while (ptr < reinterpret_cast<uint8_t *>(&items) + sizeof(items)) {
             auto id = getInt<uint64_t>(ptr, 0);
             auto teamId = getInt<uint64_t>(ptr, 8);
+            auto sortOrder = getInt<uint32_t>(ptr, 16);
             auto title = getString(ptr, 20);
 
-            if (teamId != 100) {
-                break;
-            }
+            cout << format(ptr - reinterpret_cast<uint8_t *>(&items), id, teamId, sortOrder, title.length, title.data) << endl;
 
-            cout << format(ptr - reinterpret_cast<uint8_t *>(&items), id, teamId, title.length, title.data) << endl;
-        };
+            ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
+        }
+    }
+
+    {
+        cout << endl << "ITEM WHERE ID = 2000" << endl << endl;
+
+        auto item = findItemWithId(2000);
+
+        if (item) {
+            print(*item);
+        }
+    }
+
+    {
+        cout << endl << "ITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER" << endl << endl;
+
+        cout << format("Offset", "ID", "Team ID", "Sort Order", "Length", "Title") << endl;
+        cout << repeat("===============", 6) << endl;
+
+        auto index3 = lowerBound(itemTeamIdIndex, sizeof(itemTeamIdIndex), (uint64_t) 100);
+
+        if (index3) {
+            for (size_t index = itemTeamIdIndexIndex[*index3]; index < sizeof(itemTeamIdIndexIndexData) ; ++index) {
+                auto ptr = &reinterpret_cast<uint8_t *>(&items)[itemTeamIdIndexIndexData[index]];
+
+                auto id = getInt<uint64_t>(ptr, 0);
+                auto teamId = getInt<uint64_t>(ptr, 8);
+                auto sortOrder = getInt<uint32_t>(ptr, 16);
+                auto title = getString(ptr, 20);
+
+                if (teamId != 100) {
+                    break;
+                }
+
+                cout << format(ptr - reinterpret_cast<uint8_t *>(&items), id, teamId, sortOrder, title.length, title.data) << endl;
+            };
+        }
     }
 
     return 0;

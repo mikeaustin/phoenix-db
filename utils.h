@@ -1,3 +1,6 @@
+#include <optional>
+#include <chrono>
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -23,9 +26,9 @@ struct Field {
     const char *name;
 };
 
-struct Schema {
-    const char *name;
+struct Record {
     Field *fields;
+    uint8_t *data;
 };
 
 struct String {
@@ -121,19 +124,19 @@ struct repeat {
     }
 };
 
-void print(const Schema& schema, uint8_t *record) {
+void print(const Record& record) {
     size_t offset = 0;
 
-    for (Field *field = schema.fields; field->type != Primitive::NVALID; ++field) {
+    for (const Field *field = record.fields; field->type != Primitive::NVALID; ++field) {
         switch (field->type) {
             case Primitive::UINT32:
-                cout << format(field->name, getInt<uint32_t>(record, offset)) << endl;
+                cout << format(field->name, getInt<uint32_t>(record.data, offset)) << endl;
                 break;
             case Primitive::UINT64:
-                cout << format(field->name, getInt<uint64_t>(record, offset)) << endl;
+                cout << format(field->name, getInt<uint64_t>(record.data, offset)) << endl;
                 break;
             case Primitive::STRING:
-                auto string = getString(record, offset);
+                auto string = getString(record.data, offset);
                 cout << format(field->name, string.data) << endl;
                 offset += (string.length + 8 - 1) / 8 * 8;
                 break;

@@ -1,12 +1,14 @@
 enum struct Primitive : uint32_t {
     NVALID = 0,
-    UINT32 = 1,
-    UINT64 = 2,
-    STRING = 3,
+    TYPE32 = 1,
+    UINT32 = 2,
+    UINT64 = 3,
+    STRING = 4,
 };
 
 size_t primitiveSizes[] = {
   0,
+  4,
   4,
   8,
   4,

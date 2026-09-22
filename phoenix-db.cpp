@@ -13,15 +13,15 @@ using std::cerr;
 using std::endl;
 
 Field teamFields[] = {
-    { Primitive::UINT32, "type" },
-    { Primitive::UINT32, "_padding" },
+    { Primitive::TYPE32, "type" },
+    { Primitive::TYPE32, "_padding" },
     { Primitive::UINT64, "id" },
     { },
 };
 
 Field itemFields[] = {
-    { Primitive::UINT32, "type" },
-    { Primitive::UINT32, "_padding" },
+    { Primitive::TYPE32, "type" },
+    { Primitive::TYPE32, "_padding" },
     { Primitive::UINT64, "id" },
     { Primitive::UINT64, "teamId" },
     { Primitive::UINT32, "sortOrder" },
@@ -29,9 +29,9 @@ Field itemFields[] = {
     { },
 };
 
-Table tables[] = {
-    "teams", teamFields,
-    "items", itemFields,
+Table schemas[] = {
+    "team", teamFields,
+    "item", itemFields,
 };
 
 enum struct Type : uint32_t {
@@ -45,17 +45,17 @@ void print(uint8_t *record) {
 
     size_t offset = 0;
 
-    for (Field *field = tables[type].fields; field->type != Primitive::NVALID; ++field) {
+    for (Field *field = schemas[type].fields; field->type != Primitive::NVALID; ++field) {
         switch (field->type) {
             case Primitive::UINT32:
-                cout << std::left << std::setw(16) << field->name << getInt<uint32_t>(record, offset) << endl;
+                cout << format(field->name, getInt<uint32_t>(record, offset)) << endl;
                 break;
             case Primitive::UINT64:
-                cout << std::left << std::setw(16) << field->name << getInt<uint64_t>(record, offset) << endl;
+                cout << format(field->name, getInt<uint64_t>(record, offset)) << endl;
                 break;
             case Primitive::STRING:
                 auto string = getString(record, offset);
-                cout << std::left << std::setw(16) << field->name << string.data << endl;
+                cout << format(field->name, string.data) << endl;
                 offset += (string.length + 8 - 1) / 8 * 8;
                 break;
         }
@@ -90,9 +90,9 @@ struct Data {
     Team team1 = { Type::TEAM, 0, 100 };
     Team team2 = { Type::TEAM, 0, 101 };
     Item<4> item1 = { Type::ITEM, 0, 2000, 100, 3, { 4, { 'A', 'B', 'C', 0 } } };
-    Item<12> item2 = { Type::ITEM, 0, 2001, 100, 2, { 12, 'D', 'E', 'F', 0 } };
-    Item<20> item3 = { Type::ITEM, 0, 2002, 101, 1, { 20, 'G', 'H', 'I', 0 } };
-    Item<28> item4 = { Type::ITEM, 0, 2003, 101, 0, { 28, 'J', 'K', 'L', 0 } };
+    Item<12> item2 = { Type::ITEM, 0, 2001, 100, 2, { 12, { 'D', 'E', 'F', 0 } } };
+    Item<20> item3 = { Type::ITEM, 0, 2002, 101, 1, { 20, { 'G', 'H', 'I', 0 } } };
+    Item<28> item4 = { Type::ITEM, 0, 2003, 101, 0, { 28, { 'J', 'K', 'L', 0 } } };
 } data;
 
 //
@@ -150,14 +150,14 @@ int main() {
         auto id = getInt<uint64_t>(ptr, 8);
 
         if (static_cast<Type>(type) == Type::TEAM) {
-            cout << format( ptr - reinterpret_cast<uint8_t *>(&data), type, id) << endl;
+            cout << format( ptr - reinterpret_cast<uint8_t *>(&data), schemas[type].name, id) << endl;
 
             ptr += sizeof(Team);
         } else if (static_cast<Type>(type) == Type::ITEM) {
             auto teamId = getInt<uint64_t>(ptr, 16);
             auto title = getString(ptr, 28);
 
-            cout << format(ptr - reinterpret_cast<uint8_t *>(&data), type, id, teamId, title.length, title.data) << endl;
+            cout << format(ptr - reinterpret_cast<uint8_t *>(&data), schemas[type].name, id, teamId, title.length, title.data) << endl;
 
             ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
         } else {
@@ -184,7 +184,7 @@ int main() {
                 break;
             }
 
-            cout << format(ptr - reinterpret_cast<uint8_t *>(&data), type, id, teamId, title.length, title.data) << endl;
+            cout << format(ptr - reinterpret_cast<uint8_t *>(&data), schemas[type].name, id, teamId, title.length, title.data) << endl;
         };
     }
 

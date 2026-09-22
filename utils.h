@@ -1,3 +1,7 @@
+using std::cout;
+using std::cerr;
+using std::endl;
+
 enum struct Primitive : uint32_t {
     NVALID = 0,
     TYPE32 = 1,
@@ -116,3 +120,25 @@ struct repeat {
         return ostream;
     }
 };
+
+void print(const Schema& schema, uint8_t *record) {
+    size_t offset = 0;
+
+    for (Field *field = schema.fields; field->type != Primitive::NVALID; ++field) {
+        switch (field->type) {
+            case Primitive::UINT32:
+                cout << format(field->name, getInt<uint32_t>(record, offset)) << endl;
+                break;
+            case Primitive::UINT64:
+                cout << format(field->name, getInt<uint64_t>(record, offset)) << endl;
+                break;
+            case Primitive::STRING:
+                auto string = getString(record, offset);
+                cout << format(field->name, string.data) << endl;
+                offset += (string.length + 8 - 1) / 8 * 8;
+                break;
+        }
+
+        offset += primitiveSizes[static_cast<size_t>(field->type)];
+    }
+}

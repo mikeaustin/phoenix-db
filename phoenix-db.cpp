@@ -89,10 +89,10 @@ template<int TTitleLength> struct Item {
 struct Data {
     Team team1 = { Type::TEAM, 0, 100 };
     Team team2 = { Type::TEAM, 0, 101 };
-    Item<4> item1 = { Type::ITEM, 0, 2000, 100, 0, { 4, { 'A', 'B', 'C', 0 } } };
-    Item<12> item2 = { Type::ITEM, 0, 2001, 100, 1, { 12, 'D', 'E', 'F', 'G', 'H', 0 } };
-    Item<16> item3 = { Type::ITEM, 0, 2002, 101, 2, { 16, 'I', 'J', 'K', 'L', 0 } };
-    Item<10> item4 = { Type::ITEM, 0, 2003, 101, 3, { 10, 'M', 'N', 'O', 0 } };
+    Item<4> item1 = { Type::ITEM, 0, 2000, 100, 3, { 4, { 'A', 'B', 'C', 0 } } };
+    Item<12> item2 = { Type::ITEM, 0, 2001, 100, 2, { 12, 'D', 'E', 'F', 0 } };
+    Item<20> item3 = { Type::ITEM, 0, 2002, 101, 1, { 20, 'G', 'H', 'I', 0 } };
+    Item<28> item4 = { Type::ITEM, 0, 2003, 101, 0, { 28, 'J', 'K', 'L', 0 } };
 } data;
 
 //
@@ -117,7 +117,7 @@ uint16_t itemTeamIdIndexIndex[] = {
 
 // Sorted by teamId, sortOrder
 size_t itemTeamIdIndexData[] = {
-    32, 72, 120, 168,
+    72, 32, 176, 120,
 };
 
 uint8_t *findItemWithId(uint64_t id) {
@@ -168,30 +168,14 @@ int main() {
 
     cout << endl;
 
-    auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex), (uint64_t) 2001);
-
-    if (index) {
-        uint8_t *ptr = reinterpret_cast<uint8_t *>(&data) + itemIdIndexData[*index];
-
-        cout << getInt<uint32_t>(ptr, 0) << "\t" << getInt<uint64_t>(ptr, 8) << endl;
-    } else {
-        cerr << "Item not found with id " << 20001 << endl;
-    }
-
     //
 
     auto index2 = lowerBound(itemTeamIdIndex, sizeof(itemTeamIdIndex), (uint64_t) 100);
 
     if (index2) {
-      cout << "Found item with teamId " << 100 << " at index " << *index2 << endl;
-    } else {
-      cerr << "Item not found with teamId " << 100 << endl;
-    }
+        for (size_t index = itemTeamIdIndexIndex[*index2]; index < sizeof(itemTeamIdIndexData) / sizeof(size_t) ; ++index) {
+            ptr = &reinterpret_cast<uint8_t *>(&data)[itemTeamIdIndexData[index]];
 
-    if (index2) {
-        ptr = reinterpret_cast<uint8_t *>(&data) + itemTeamIdIndexData[itemTeamIdIndexIndex[*index2]];
-
-        while (ptr < reinterpret_cast<uint8_t *>(&data) + sizeof(data)) {
             auto type = getInt<uint32_t>(ptr, 0);
             auto id = getInt<uint64_t>(ptr, 8);
             auto teamId = getInt<uint64_t>(ptr, 16);
@@ -202,9 +186,7 @@ int main() {
             }
 
             cout << ptr - reinterpret_cast<uint8_t *>(&data) << "\t" << format(type, id, teamId, title.length, title.data) << endl;
-
-            ptr += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
-          }
+        };
     }
 
     // benchmark();

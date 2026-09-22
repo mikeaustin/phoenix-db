@@ -83,7 +83,7 @@ struct FormatWrapper {
 };
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-std::ostream& operator<<(std::ostream& ostream, const FormatWrapper<T1, T2, T3, T4, T5, T6>& wrapper) {
+std::ostream& operator <<(std::ostream& ostream, const FormatWrapper<T1, T2, T3, T4, T5, T6>& wrapper) {
     ostream << wrapper.a << "\t" << wrapper.b << "\t" << wrapper.c << "\t" << wrapper.d << "\t" << wrapper.e << "\t" << wrapper.f;
 
     return ostream;

@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <optional>
 #include <chrono>
 
@@ -141,6 +142,9 @@ void print(const Record& record) {
 
     for (const Field *field = record.fields; field->type != Primitive::NVALID; ++field) {
         switch (field->type) {
+            case Primitive::NVALID:
+            case Primitive::TYPE32:
+                break;
             case Primitive::UINT32:
                 cout << format(field->name, getInt<uint32_t>(record.data, offset)) << endl;
                 break;

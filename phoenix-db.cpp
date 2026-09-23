@@ -120,8 +120,8 @@ int main() {
     {
         cout << endl << "ITEMS" << endl << endl;
 
-        cout << format("Offset", "ID", "Team ID", "Sort Order", "Length", "Title") << endl;
-        cout << repeat("===============", 6) << endl;
+        cout << format("Offset", "ID", "Team ID", "Sort Order", "Title") << endl;
+        cout << repeat("===============", 5) << endl;
 
         auto first = getRecord(&items, 0),
              last = getRecord(&items, sizeof(items)),
@@ -133,7 +133,7 @@ int main() {
             auto sortOrder = getInt<uint32_t>(record, 16);
             auto title = getString(record, 20);
 
-            cout << format(record - first, id, teamId, sortOrder, title.length, title.data) << endl;
+            printRow(record - reinterpret_cast<uint8_t *>(&items), { itemSchema.fields, record });
 
             record += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
         }
@@ -152,8 +152,8 @@ int main() {
     {
         cout << endl << "ITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER" << endl << endl;
 
-        cout << format("Offset", "ID", "Team ID", "Sort Order", "Length", "Title") << endl;
-        cout << repeat("===============", 6) << endl;
+        cout << format("Offset", "ID", "Team ID", "Sort Order", "Title") << endl;
+        cout << repeat("===============", 5) << endl;
 
         auto index3 = lowerBound(itemTeamIdIndex, sizeof(itemTeamIdIndex), (uint64_t) 100);
 
@@ -170,7 +170,7 @@ int main() {
                     break;
                 }
 
-                cout << format(record - reinterpret_cast<uint8_t *>(&items), id, teamId, sortOrder, title.length, title.data) << endl;
+                printRow(record - reinterpret_cast<uint8_t *>(&items), { itemSchema.fields, record });
             };
         }
     }

@@ -161,3 +161,32 @@ void print(const Record& record) {
         offset += Primitive::sizes[static_cast<size_t>(field->type)];
     }
 }
+
+void printRow(size_t offset, const Record& record) {
+    size_t fieldOffset = 0;
+
+    cout << std::left << std::setw(16) << offset;
+
+    for (const Field *field = record.fields; field->type != Primitive::NVALID; ++field) {
+        switch (field->type) {
+            case Primitive::NVALID:
+            case Primitive::TYPE32:
+                break;
+            case Primitive::UINT32:
+                cout << std::left << std::setw(16) << getInt<uint32_t>(record.data, fieldOffset);
+                break;
+            case Primitive::UINT64:
+                cout << std::left << std::setw(16) << getInt<uint64_t>(record.data, fieldOffset);
+                break;
+            case Primitive::STRING:
+                auto string = getString(record.data, fieldOffset);
+                cout << std::left << std::setw(16) << std::setw(0) << string.data << " (" << string.length << ")";
+                fieldOffset += (string.length + 8 - 1) / 8 * 8;
+                break;
+        }
+
+        fieldOffset += Primitive::sizes[static_cast<size_t>(field->type)];
+    }
+
+    cout << endl;
+}

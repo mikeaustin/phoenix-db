@@ -1,6 +1,10 @@
 // g++ -std=c++20 -O3 -flto phoenix-db.cpp
 
 #include <iostream>
+#include <cstring>
+#include <sys/mman.h>  // Required for mmap, munmap, msync
+#include <fcntl.h>     // Required for open, O_RDWR, etc.
+#include <unistd.h>    // Required for close, ftruncate
 
 #include "utils.h"
 
@@ -98,6 +102,39 @@ std::optional<Record> findItemWithId(uint64_t id) {
 //
 
 int main() {
+    const char *filename = "example.bin";
+    const size_t FILE_SIZE = 4096;
+
+    int fd = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+
+    if (fd == -1) {
+        std::perror("Error opening/creating file");
+
+        return 1;
+    }
+
+    if (ftruncate(fd, FILE_SIZE) == -1) {
+        std::perror("Error setting file size");
+        close(fd);
+
+        return 1;
+    }
+
+    void *map = mmap(nullptr, FILE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+    if (map == MAP_FAILED) {
+        std::perror("Error mapping the file");
+        close(fd);
+
+        return 1;
+    }
+
+    close(fd);
+
+    uint8_t *data = static_cast<uint8_t *>(map);
+
+    std::memcpy(data, &items, sizeof(items));
+
     {
         cout << "TEAMS" << endl << endl;
 

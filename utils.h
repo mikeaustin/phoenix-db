@@ -48,7 +48,7 @@ struct String {
 //
 
 uint8_t *getRecord(void *records, size_t offset) {
-    return reinterpret_cast<uint8_t *>(records) + offset;
+    return static_cast<uint8_t *>(records) + offset;
 }
 
 template <typename T>

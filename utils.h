@@ -5,36 +5,26 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-enum struct Primitive : uint32_t {
-    NVALID = 0,
-    TYPE32 = 1,
-    UINT32 = 2,
-    UINT64 = 3,
-    STRING = 4,
-};
-
-size_t primitiveSizes[] = {
-  0,
-  4,
-  4,
-  8,
-  4,
-};
-
-namespace Primitives {
-    struct Type {
-        size_t size;
+namespace Primitive {
+    enum Type : uint32_t {
+        NVALID = 0,
+        TYPE32 = 1,
+        UINT32 = 2,
+        UINT64 = 3,
+        STRING = 4,
     };
 
-    Type NVALID = { 0 };
-    Type TYPE32 = { 4 };
-    Type UINT32 = { 4 };
-    Type UINT64 = { 8 };
-    Type STRING = { 4 };
+    size_t sizes[] = {
+        0,
+        4,
+        4,
+        8,
+        4,
+    };
 };
 
 struct Field {
-    const Primitive type;
+    const Primitive::Type type;
     const char *name;
 };
 
@@ -164,6 +154,6 @@ void print(const Record& record) {
                 break;
         }
 
-        offset += primitiveSizes[static_cast<size_t>(field->type)];
+        offset += Primitive::sizes[static_cast<size_t>(field->type)];
     }
 }

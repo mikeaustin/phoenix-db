@@ -1,4 +1,4 @@
-// g++ -std=c++20 -O3 -flto
+// g++ -std=c++20 -O3 -flto phoenix-db.cpp
 
 #include <iostream>
 
@@ -8,35 +8,41 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-Field teamFields[] = {
-    { Primitive::UINT64, "id" },
-    { },
+Schema teamSchema = {
+    "team",
+    {
+        { Primitive::UINT64, "id" },
+        { },
+    },
 };
 
-Field itemFields[] = {
-    { Primitive::UINT64, "id" },
-    { Primitive::UINT64, "teamId" },
-    { Primitive::UINT32, "sortOrder" },
-    { Primitive::STRING, "title" },
-    { },
+Schema itemSchema = {
+    "team",
+    {
+        { Primitive::UINT64, "id" },
+        { Primitive::UINT64, "teamId" },
+        { Primitive::UINT32, "sortOrder" },
+        { Primitive::STRING, "title" },
+        { },
+    },
 };
 
 //
 
 template<int TLength> struct _String {
-    uint32_t length;
+    const uint32_t length;
     char title[TLength];
 };
 
 struct Team {
-    uint64_t id;
+    const uint64_t id;
 };
 
 template<int TTitleLength> struct Item {
-    uint64_t id;
-    uint64_t teamId;
-    uint32_t sortOrder;
-    _String<TTitleLength> title;
+    const uint64_t id;
+    const uint64_t teamId;
+    const uint32_t sortOrder;
+    const _String<TTitleLength> title;
 };
 
 struct Teams {
@@ -57,7 +63,7 @@ uint64_t itemIdIndex[] = {
     2000, 2001, 2002, 2003,
 };
 
-uint64_t itemIdIndexData[] = {
+size_t itemIdIndexData[] = {
     0, 32, 72, 120,
 };
 
@@ -79,7 +85,7 @@ std::optional<Record> findItemWithId(uint64_t id) {
     if (index) {
         auto ptr = getRecord(&items, itemIdIndexData[*index]);
 
-        return Record { itemFields, ptr };
+        return Record { itemSchema.fields, ptr };
     }
 
     cerr << "Item not found with id " << id << endl;

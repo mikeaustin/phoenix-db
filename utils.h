@@ -21,19 +21,37 @@ size_t primitiveSizes[] = {
   4,
 };
 
+namespace Primitives {
+    struct Type {
+        size_t size;
+    };
+
+    Type NVALID = { 0 };
+    Type TYPE32 = { 4 };
+    Type UINT32 = { 4 };
+    Type UINT64 = { 8 };
+    Type STRING = { 4 };
+};
+
 struct Field {
-    Primitive type;
+    const Primitive type;
     const char *name;
 };
 
+template <int S>
+struct Schema {
+    const char *name;
+    const Field fields[S];
+};
+
 struct Record {
-    Field *fields;
+    const Field *fields;
     uint8_t *data;
 };
 
 struct String {
   uint32_t length;
-  char *data;
+  const char *data;
 };
 
 //

@@ -15,6 +15,7 @@ using std::endl;
 template <size_t S>
 struct Relation {
     const char *name;
+    const char *foreignKey;
     const Schema<S>& relation;
 };
 
@@ -38,7 +39,7 @@ const Schema itemSchema = {
 };
 
 Relation<5> teamRelations[] = {
-    { "items", itemSchema }
+    { "items", "teamId", itemSchema }
 };
 
 //

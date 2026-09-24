@@ -40,6 +40,12 @@ struct Index {
     size_t offsets[S];
 };
 
+template <typename T>
+struct Index2 {
+    T id;
+    size_t offset;
+};
+
 template <typename T, int I, int S>
 struct IndexIndex {
     T ids[I];
@@ -123,6 +129,27 @@ std::optional<size_t> lowerBound(T *array, size_t size, T value) {
     }
 
     return std::nullopt;
+}
+
+template <typename T, typename U>
+T *lowerBound2(T *array, size_t size, U value) {
+    int left = 0, right = size / sizeof(T) - 1;
+
+    while (left < right) {
+        int mid = left + (right - left) / 2; 
+
+        if (*reinterpret_cast<U *>(&array[mid]) >= value) {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    if (*reinterpret_cast<U *>(&array[left]) == value) {
+      return &array[left];
+    }
+
+    return nullptr;
 }
 
 //

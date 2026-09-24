@@ -92,6 +92,10 @@ Index<uint64_t, 4> itemIdIndex = {
     { 0, 32, 72, 120 },
 };
 
+Index2<uint64_t> itemIdIndex2[] = {
+    { 2000, 0 }, { 2001, 32 }, { 2002, 72 }, { 2003, 120 },
+};
+
 IndexIndex<uint64_t, 2, 4> itemTeamIdIndex = {
     { 100, 101 },
     { 0, 2 },
@@ -117,6 +121,12 @@ std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
 //
 
 int main() {
+    auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2), (uint64_t) 2001);
+
+    if (xxx) {
+        cout << xxx->id << endl;
+    }
+
     const char *filename = "example.bin";
     const size_t FILE_SIZE = 4096;
 

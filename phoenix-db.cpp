@@ -171,6 +171,9 @@ int main() {
         cout << format("Offset", "ID", "Team ID", "Sort Order", "Title") << endl;
         cout << repeat("===============", 5) << endl;
 
+        cout << getInt<uint32_t>(reinterpret_cast<uint8_t *>(&items), 0) << endl;
+        cout << getInt<uint32_t>(reinterpret_cast<uint8_t *>(data), 0) << endl;
+
         auto first = getRecord(&items, 0),
              last = getRecord(&items, sizeof(items)),
              record = first;

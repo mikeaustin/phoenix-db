@@ -97,9 +97,9 @@ Index2<uint64_t> itemIdIndex2[] = {
     { 2000, 0 }, { 2001, 32 }, { 2002, 72 }, { 2003, 120 },
 };
 
-IndexIndex<uint64_t, 2, 4> itemTeamIdIndex = {
+IndexIndex<uint64_t, 3, 4> itemTeamIdIndex = {
     { 100, 101 },
-    { 0, 2 },
+    { 0, 2, 4 },
     { 32, 0, 120, 72 },
 };
 
@@ -130,7 +130,7 @@ int main() {
 
     uint8_t *items = openTable("example.bin");
 
-    // std::memcpy(items, &_items, sizeof(_items));
+    std::memcpy(items, &_items, sizeof(_items));
 
     {
         cout << "TEAMS" << endl << endl;
@@ -189,12 +189,12 @@ int main() {
         auto index3 = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
 
         if (index3) {
-            for (size_t index = itemTeamIdIndex.indexes[*index3]; index < sizeof(itemTeamIdIndex.indexes) ; ++index) {
+            for (size_t index = itemTeamIdIndex.indexes[*index3]; index < sizeof(itemTeamIdIndex.offsets) / sizeof(size_t) ; ++index) {
                 auto record = getRecord(items, itemTeamIdIndex.offsets[index]);
 
                 auto teamId = getInt<uint64_t>(record, 8);
 
-                if (teamId != 100) {
+                if (index >= itemTeamIdIndex.indexes[*index3 + 1]) {
                     break;
                 }
 

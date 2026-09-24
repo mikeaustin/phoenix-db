@@ -12,11 +12,17 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-template <size_t S>
 struct Relation {
+    enum Type : uint32_t {
+        ONE_TO_ONE = 0,
+        ONE_TO_MANY = 1,
+        MANY_TO_MANY = 2,
+    };
+
     const char *name;
     const char *foreignKey;
-    const Schema<S>& relation;
+    const Schema& relation;
+    const Type type;
 };
 
 const Schema teamSchema = {
@@ -38,8 +44,12 @@ const Schema itemSchema = {
     },
 };
 
-Relation<5> teamRelations[] = {
-    { "items", "teamId", itemSchema }
+Relation teamRelations[] = {
+    { "items", "id", itemSchema, Relation::ONE_TO_MANY },
+};
+
+Relation itemRelations[] = {
+    { "team", "teamId", teamSchema, Relation::ONE_TO_ONE },
 };
 
 //

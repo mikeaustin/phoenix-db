@@ -29,10 +29,9 @@ struct Field {
     const char *name;
 };
 
-template <int S>
 struct Schema {
     const char *name;
-    const Field fields[S];
+    const Field fields[];
 };
 
 template <typename T, int S>

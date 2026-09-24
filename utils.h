@@ -35,6 +35,19 @@ struct Schema {
     const Field fields[S];
 };
 
+template <typename T, int S>
+struct Index {
+    T ids[S];
+    size_t offsets[S];
+};
+
+template <typename T, int I, int S>
+struct IndexIndex {
+    T ids[I];
+    T indexes[I];
+    size_t offsets[S];
+};
+
 struct Record {
     const Field *fields;
     uint8_t *data;

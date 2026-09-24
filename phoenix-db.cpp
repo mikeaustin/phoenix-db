@@ -74,31 +74,22 @@ struct Items {
 
 //
 
-uint64_t itemIdIndex[] = {
-    2000, 2001, 2002, 2003,
+Index<uint64_t, 4> itemIdIndex = {
+    { 2000, 2001, 2002, 2003 },
+    { 0, 32, 72, 120 },
 };
 
-size_t itemIdIndexData[] = {
-    0, 32, 72, 120,
-};
-
-uint64_t itemTeamIdIndex[] = {
-    100, 101,
-};
-
-uint16_t itemTeamIdIndexIndex[] = {
-    0, 2,
-};
-
-size_t itemTeamIdIndexIndexData[] = {
-    32, 0, 120, 72,
+IndexIndex<uint64_t, 2, 4> itemTeamIdIndex = {
+    { 100, 101 },
+    { 0, 2 },
+    { 32, 0, 120, 72 },
 };
 
 std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
-    auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex), id);
+    auto index = lowerBound(itemIdIndex.ids, sizeof(itemIdIndex.ids), id);
 
     if (index) {
-        auto ptr = getRecord(items, itemIdIndexData[*index]);
+        auto ptr = getRecord(items, itemIdIndex.offsets[*index]);
 
         return Record { itemSchema.fields, ptr };
     }
@@ -203,11 +194,11 @@ int main() {
         cout << format("Offset", "ID", "Team ID", "Sort Order", "Title") << endl;
         cout << repeat("===============", 5) << endl;
 
-        auto index3 = lowerBound(itemTeamIdIndex, sizeof(itemTeamIdIndex), (uint64_t) 100);
+        auto index3 = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
 
         if (index3) {
-            for (size_t index = itemTeamIdIndexIndex[*index3]; index < sizeof(itemTeamIdIndexIndexData) ; ++index) {
-                auto record = getRecord(items, itemTeamIdIndexIndexData[index]);
+            for (size_t index = itemTeamIdIndex.indexes[*index3]; index < sizeof(itemTeamIdIndex.indexes) ; ++index) {
+                auto record = getRecord(items, itemTeamIdIndex.offsets[index]);
 
                 auto id = getInt<uint64_t>(record, 0);
                 auto teamId = getInt<uint64_t>(record, 8);

@@ -186,15 +186,13 @@ int main() {
         cout << format("Offset", "ID", "Team ID", "Sort Order", "Title") << endl;
         cout << repeat("===============", 5) << endl;
 
-        auto index3 = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
+        auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
 
-        if (index3) {
-            for (size_t index = itemTeamIdIndex.indexes[*index3]; index < sizeof(itemTeamIdIndex.offsets) / sizeof(size_t) ; ++index) {
-                auto record = getRecord(items, itemTeamIdIndex.offsets[index]);
+        if (teamIndex) {
+            for (size_t offsetIndex = itemTeamIdIndex.indexes[*teamIndex]; offsetIndex < sizeof(itemTeamIdIndex.offsets) / sizeof(size_t) ; ++offsetIndex) {
+                auto record = getRecord(items, itemTeamIdIndex.offsets[offsetIndex]);
 
-                auto teamId = getInt<uint64_t>(record, 8);
-
-                if (index >= itemTeamIdIndex.indexes[*index3 + 1]) {
+                if (offsetIndex >= itemTeamIdIndex.indexes[*teamIndex + 1]) {
                     break;
                 }
 

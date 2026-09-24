@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include <cstring>
-#include <sys/mman.h>  // Required for mmap, munmap, msync
-#include <fcntl.h>     // Required for open, O_RDWR, etc.
-#include <unistd.h>    // Required for close, ftruncate
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "utils.h"
 
@@ -12,7 +12,13 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-Schema teamSchema = {
+template <size_t S>
+struct Relation {
+    const char *name;
+    const Schema<S>& relation;
+};
+
+const Schema teamSchema = {
     "team",
     {
         { Primitive::UINT64, "id" },
@@ -20,7 +26,7 @@ Schema teamSchema = {
     },
 };
 
-Schema itemSchema = {
+const Schema itemSchema = {
     "team",
     {
         { Primitive::UINT64, "id" },
@@ -29,6 +35,10 @@ Schema itemSchema = {
         { Primitive::STRING, "title" },
         { },
     },
+};
+
+Relation<5> teamRelations[] = {
+    { "items", itemSchema }
 };
 
 //

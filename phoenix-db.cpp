@@ -94,11 +94,11 @@ size_t itemTeamIdIndexIndexData[] = {
     32, 0, 120, 72,
 };
 
-std::optional<Record> findItemWithId(uint64_t id) {
+std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
     auto index = lowerBound(itemIdIndex, sizeof(itemIdIndex), id);
 
     if (index) {
-        auto ptr = getRecord(&items, itemIdIndexData[*index]);
+        auto ptr = getRecord(items, itemIdIndexData[*index]);
 
         return Record { itemSchema.fields, ptr };
     }
@@ -190,7 +190,7 @@ int main() {
     {
         cout << endl << "ITEM WHERE ID = 2000" << endl << endl;
 
-        auto item = findItemWithId(2000);
+        auto item = findItemWithId(reinterpret_cast<uint8_t *>(&items), 2000);
 
         if (item) {
             print(*item);

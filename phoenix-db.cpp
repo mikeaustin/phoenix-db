@@ -6,7 +6,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "utils.h"
+#include "table-utils.h"
+#include "file-utils.h"
 
 using std::cout;
 using std::cerr;
@@ -127,38 +128,9 @@ int main() {
         cout << xxx->id << endl;
     }
 
-    const char *filename = "example.bin";
-    const size_t FILE_SIZE = 4096;
+    uint8_t *items = openTable("example.bin");
 
-    int fd = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-
-    if (fd == -1) {
-        std::perror("Error opening/creating file");
-
-        return 1;
-    }
-
-    if (ftruncate(fd, FILE_SIZE) == -1) {
-        std::perror("Error setting file size");
-        close(fd);
-
-        return 1;
-    }
-
-    void *map = mmap(nullptr, FILE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-    if (map == MAP_FAILED) {
-        std::perror("Error mapping the file");
-        close(fd);
-
-        return 1;
-    }
-
-    close(fd);
-
-    uint8_t *items = static_cast<uint8_t *>(map);
-
-    std::memcpy(items, &_items, sizeof(_items));
+    // std::memcpy(items, &_items, sizeof(_items));
 
     {
         cout << "TEAMS" << endl << endl;
@@ -173,7 +145,7 @@ int main() {
         while (record < last) {
             auto id = getInt<uint64_t>(record, 0);
 
-            cout << format(record - first, id) << endl;
+            printRow(record - first, { teamSchema.fields, record });
 
             record += sizeof(Team);
         }
@@ -190,12 +162,9 @@ int main() {
              record = first;
 
         while (record < last) {
-            auto id = getInt<uint64_t>(record, 0);
-            auto teamId = getInt<uint64_t>(record, 8);
-            auto sortOrder = getInt<uint32_t>(record, 16);
             auto title = getString(record, 20);
 
-            printRow(record - reinterpret_cast<uint8_t *>(items), { itemSchema.fields, record });
+            printRow(record - first, { itemSchema.fields, record });
 
             record += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
         }
@@ -223,10 +192,7 @@ int main() {
             for (size_t index = itemTeamIdIndex.indexes[*index3]; index < sizeof(itemTeamIdIndex.indexes) ; ++index) {
                 auto record = getRecord(items, itemTeamIdIndex.offsets[index]);
 
-                auto id = getInt<uint64_t>(record, 0);
                 auto teamId = getInt<uint64_t>(record, 8);
-                auto sortOrder = getInt<uint32_t>(record, 16);
-                auto title = getString(record, 20);
 
                 if (teamId != 100) {
                     break;

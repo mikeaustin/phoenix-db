@@ -34,6 +34,16 @@ struct Schema {
     const Field fields[];
 };
 
+struct Record {
+    const Field *fields;
+    uint8_t *data;
+};
+
+struct String {
+  uint32_t length;
+  const char *data;
+};
+
 template <typename T, int S>
 struct Index {
     T ids[S];
@@ -51,16 +61,6 @@ struct IndexIndex {
     T ids[I];
     T indexes[I];
     size_t offsets[S];
-};
-
-struct Record {
-    const Field *fields;
-    uint8_t *data;
-};
-
-struct String {
-  uint32_t length;
-  const char *data;
 };
 
 //

@@ -59,7 +59,7 @@ struct Index2 {
 template <typename T, int I, int S>
 struct IndexIndex {
     T ids[I];
-    T indexes[I];
+    size_t indexes[I];
     size_t offsets[S];
 };
 
@@ -220,6 +220,28 @@ void print(const Record& record) {
 
         offset += Primitive::sizes[static_cast<size_t>(field->type)];
     }
+}
+
+size_t recordSize(const Record& record) {
+    size_t fieldOffset = 0;
+
+    for (const Field *field = record.fields; field->type != Primitive::NVALID; ++field) {
+        switch (field->type) {
+            case Primitive::NVALID:
+            case Primitive::TYPE32:
+            case Primitive::UINT32:
+            case Primitive::UINT64:
+                break;
+            case Primitive::STRING:
+                auto string = getString(record.data, fieldOffset);
+                fieldOffset += (string.length + 8 - 1) / 8 * 8;
+                break;
+        }
+
+        fieldOffset += Primitive::sizes[static_cast<size_t>(field->type)];
+    }
+
+    return fieldOffset;
 }
 
 void printRow(size_t offset, const Record& record) {

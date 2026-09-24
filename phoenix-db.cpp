@@ -147,7 +147,7 @@ int main() {
 
             printRow(record - first, { teamSchema.fields, record });
 
-            record += sizeof(Team);
+            record += recordSize({ teamSchema.fields, record });
         }
     }
 
@@ -166,7 +166,7 @@ int main() {
 
             printRow(record - first, { itemSchema.fields, record });
 
-            record += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
+            record += recordSize({ itemSchema.fields, record });
         }
     }
 

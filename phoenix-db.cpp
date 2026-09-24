@@ -12,30 +12,15 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-struct Relation {
-    enum Type : uint32_t {
-        ONE_TO_ONE = 0,
-        ONE_TO_MANY = 1,
-        MANY_TO_MANY = 2,
-    };
-
-    const char *name;
-    const char *foreignKey;
-    const Schema& relation;
-    const Type type;
-};
-
 const Schema teamSchema = {
-    "team",
-    {
+    "team", {
         { Primitive::UINT64, "id" },
         { },
     },
 };
 
 const Schema itemSchema = {
-    "team",
-    {
+    "team", {
         { Primitive::UINT64, "id" },
         { Primitive::UINT64, "teamId" },
         { Primitive::UINT32, "sortOrder" },
@@ -44,12 +29,30 @@ const Schema itemSchema = {
     },
 };
 
-Relation teamRelations[] = {
-    { "items", "id", itemSchema, Relation::ONE_TO_MANY },
+const Relationship teamRelationships[] = {
+    { "items", "id", itemSchema, Relationship::ONE_TO_MANY },
 };
 
-Relation itemRelations[] = {
-    { "team", "teamId", teamSchema, Relation::ONE_TO_ONE },
+const Relationship itemRelationships[] = {
+    { "team", "teamId", teamSchema, Relationship::ONE_TO_ONE },
+};
+
+
+Table teamsTable = {
+    "teams", teamSchema, {
+        "items", "id", itemSchema, Relationship::ONE_TO_MANY
+    },
+};
+
+Table itemsTable = {
+    "items", teamSchema, {
+        "items", "id", itemSchema, Relationship::ONE_TO_MANY
+    },
+};
+
+Table tables[] = {
+    teamsTable,
+    itemsTable,
 };
 
 //

@@ -59,6 +59,27 @@ struct String {
 
 //
 
+struct Relationship {
+    enum Type : uint32_t {
+        ONE_TO_ONE = 0,
+        ONE_TO_MANY = 1,
+        MANY_TO_MANY = 2,
+    };
+
+    const char *name;
+    const char *foreignKey;
+    const Schema& relation;
+    const Type type;
+};
+
+struct Table {
+    const char *name;
+    const Schema& schema;
+    const Relationship relationships[];
+};
+
+//
+
 uint8_t *getRecord(void *records, size_t offset) {
     return static_cast<uint8_t *>(records) + offset;
 }

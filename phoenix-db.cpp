@@ -70,7 +70,7 @@ struct Items {
     Item<12> item2 = { 2001, 100, 2, { 12, { 'D', 'E', 'F', 0 } } };
     Item<20> item3 = { 2002, 101, 1, { 20, { 'G', 'H', 'I', 0 } } };
     Item<28> item4 = { 2003, 101, 0, { 28, { 'J', 'K', 'L', 0 } } };
-} items;
+} _items;
 
 //
 
@@ -142,9 +142,9 @@ int main() {
 
     close(fd);
 
-    uint8_t *data = static_cast<uint8_t *>(map);
+    uint8_t *items = static_cast<uint8_t *>(map);
 
-    std::memcpy(data, &items, sizeof(items));
+    std::memcpy(items, &_items, sizeof(_items));
 
     {
         cout << "TEAMS" << endl << endl;
@@ -171,11 +171,8 @@ int main() {
         cout << format("Offset", "ID", "Team ID", "Sort Order", "Title") << endl;
         cout << repeat("===============", 5) << endl;
 
-        cout << getInt<uint32_t>(reinterpret_cast<uint8_t *>(&items), 0) << endl;
-        cout << getInt<uint32_t>(reinterpret_cast<uint8_t *>(data), 0) << endl;
-
-        auto first = getRecord(&items, 0),
-             last = getRecord(&items, sizeof(items)),
+        auto first = getRecord(items, 0),
+             last = getRecord(items, sizeof(_items)),
              record = first;
 
         while (record < last) {
@@ -184,7 +181,7 @@ int main() {
             auto sortOrder = getInt<uint32_t>(record, 16);
             auto title = getString(record, 20);
 
-            printRow(record - reinterpret_cast<uint8_t *>(&items), { itemSchema.fields, record });
+            printRow(record - reinterpret_cast<uint8_t *>(items), { itemSchema.fields, record });
 
             record += sizeof(Item<0>) + (title.length + 8 - 1) / 8 * 8;
         }
@@ -193,7 +190,7 @@ int main() {
     {
         cout << endl << "ITEM WHERE ID = 2000" << endl << endl;
 
-        auto item = findItemWithId(reinterpret_cast<uint8_t *>(&items), 2000);
+        auto item = findItemWithId(reinterpret_cast<uint8_t *>(items), 2000);
 
         if (item) {
             print(*item);
@@ -210,7 +207,7 @@ int main() {
 
         if (index3) {
             for (size_t index = itemTeamIdIndexIndex[*index3]; index < sizeof(itemTeamIdIndexIndexData) ; ++index) {
-                auto record = getRecord(&items, itemTeamIdIndexIndexData[index]);
+                auto record = getRecord(items, itemTeamIdIndexIndexData[index]);
 
                 auto id = getInt<uint64_t>(record, 0);
                 auto teamId = getInt<uint64_t>(record, 8);
@@ -221,7 +218,7 @@ int main() {
                     break;
                 }
 
-                printRow(record - reinterpret_cast<uint8_t *>(&items), { itemSchema.fields, record });
+                printRow(record - reinterpret_cast<uint8_t *>(items), { itemSchema.fields, record });
             };
         }
     }

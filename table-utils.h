@@ -24,17 +24,17 @@ namespace Primitive {
     };
 };
 
-struct Field {
+struct Column {
     const Primitive::Type type;
     const char *name;
 };
 
 struct Schema {
-    const Field *fields;
+    const Column *fields;
 };
 
 struct Record {
-    const Field *fields;
+    const Column *fields;
     uint8_t *data;
 };
 
@@ -81,7 +81,7 @@ struct Relationship {
 
 struct Table {
     const char *name;
-    const Schema *schema;
+    const Column *columns;
     const Relationship *relationships;
 };
 
@@ -201,7 +201,7 @@ struct repeat {
 void print(const Record& record) {
     size_t offset = 0;
 
-    for (const Field *field = record.fields; field->type != Primitive::NVALID; ++field) {
+    for (const Column *field = record.fields; field->type != Primitive::NVALID; ++field) {
         switch (field->type) {
             case Primitive::NVALID:
             case Primitive::TYPE32:
@@ -226,7 +226,7 @@ void print(const Record& record) {
 size_t recordSize(const Record& record) {
     size_t fieldOffset = 0;
 
-    for (const Field *field = record.fields; field->type != Primitive::NVALID; ++field) {
+    for (const Column *field = record.fields; field->type != Primitive::NVALID; ++field) {
         switch (field->type) {
             case Primitive::NVALID:
             case Primitive::TYPE32:
@@ -250,7 +250,7 @@ void printRow(size_t offset, const Record& record) {
 
     cout << std::left << std::setw(16) << offset;
 
-    for (const Field *field = record.fields; field->type != Primitive::NVALID; ++field) {
+    for (const Column *field = record.fields; field->type != Primitive::NVALID; ++field) {
         switch (field->type) {
             case Primitive::NVALID:
             case Primitive::TYPE32:

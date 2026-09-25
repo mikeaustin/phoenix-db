@@ -17,26 +17,26 @@ extern Table teamsTable;
 extern Table itemsTable;
 
 Table teamsTable = {
-    "teams", new Schema {
-        new Field[] {
-            { Primitive::UINT64, "id" },
-            { },
-        },
-    }, new Relationship[] {
+    "teams",
+    new Column[] {
+        { Primitive::UINT64, "id" },
+        { },
+    },
+    new Relationship[] {
         { "items", "id", &itemsTable, Relationship::ONE_TO_MANY },
     },
 };
 
 Table itemsTable = {
-    "items", new Schema {
-        new Field[] {
-            { Primitive::UINT64, "id" },
-            { Primitive::UINT64, "teamId" },
-            { Primitive::UINT32, "sortOrder" },
-            { Primitive::STRING, "title" },
-            { },
-        }
-    }, new Relationship[] {
+    "items", 
+    new Column[] {
+        { Primitive::UINT64, "id" },
+        { Primitive::UINT64, "teamId" },
+        { Primitive::UINT32, "sortOrder" },
+        { Primitive::STRING, "title" },
+        { },
+    },
+    new Relationship[] {
         { "team", "teamId", &teamsTable, Relationship::ONE_TO_MANY },
     },
 };
@@ -99,7 +99,7 @@ std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
     if (index) {
         auto ptr = getRecord(items, itemIdIndex.offsets[*index]);
 
-        return Record { itemsTable.schema->fields, ptr };
+        return Record { itemsTable.columns, ptr };
     }
 
     cerr << "Item not found with id " << id << endl;
@@ -135,9 +135,9 @@ int main() {
         while (record < last) {
             auto id = getInt<uint64_t>(record, 0);
 
-            printRow(record - first, { teamsTable.schema->fields, record });
+            printRow(record - first, { teamsTable.columns, record });
 
-            record += recordSize({ teamsTable.schema->fields, record });
+            record += recordSize({ teamsTable.columns, record });
         }
     }
 
@@ -154,9 +154,9 @@ int main() {
         while (record < last) {
             auto title = getString(record, 20);
 
-            printRow(record - first, { itemsTable.schema->fields, record });
+            printRow(record - first, { itemsTable.columns, record });
 
-            record += recordSize({ itemsTable.schema->fields, record });
+            record += recordSize({ itemsTable.columns, record });
         }
     }
 
@@ -186,7 +186,7 @@ int main() {
                     break;
                 }
 
-                printRow(record - reinterpret_cast<uint8_t *>(items), { itemsTable.schema->fields, record });
+                printRow(record - reinterpret_cast<uint8_t *>(items), { itemsTable.columns, record });
             };
         }
     }

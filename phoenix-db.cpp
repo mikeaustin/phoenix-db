@@ -130,8 +130,8 @@ struct Statement {
     Identifier table;
 };
 
-void spaces(string::iterator& input, string::iterator end) {
-    while (input != end && *input == ' ') {
+void whitespace(string::iterator& input, string::iterator end) {
+    while (input != end && std::isspace(*input)) {
         ++input;
     }
 }
@@ -160,7 +160,7 @@ std::optional<Identifier> identifier(string::iterator& input, string::iterator e
 
 Statement expression(string::iterator& input, string::iterator end) {
     auto _keyword = keyword(input, end);
-    spaces(input, end);
+    whitespace(input, end);
     auto _table = identifier(input, end);
 
     if (_table) {

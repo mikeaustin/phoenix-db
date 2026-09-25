@@ -23,7 +23,7 @@ Table teamsTable = {
             { },
         },
     }, new Relationship[] {
-        { "items", "id", itemsTable.schema, Relationship::ONE_TO_MANY },
+        { "items", "id", &itemsTable, Relationship::ONE_TO_MANY },
     },
 };
 
@@ -37,7 +37,7 @@ Table itemsTable = {
             { },
         }
     }, new Relationship[] {
-        { "team", "teamId", teamsTable.schema, Relationship::ONE_TO_MANY },
+        { "team", "teamId", &teamsTable, Relationship::ONE_TO_MANY },
     },
 };
 

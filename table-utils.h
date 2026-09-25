@@ -64,6 +64,8 @@ struct IndexIndex {
 
 //
 
+struct Table;
+
 struct Relationship {
     enum Type : uint32_t {
         ONE_TO_ONE = 0,
@@ -73,7 +75,7 @@ struct Relationship {
 
     const char *name;
     const char *foreignKey;
-    const Schema *relation;
+    const Table *relation;
     const Type type;
 };
 

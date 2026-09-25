@@ -106,7 +106,7 @@ void printRow(size_t offset, const Record& record) {
                 break;
             case Primitive::STRING:
                 auto string = getString(record.data, fieldOffset);
-                cout << std::left << std::setw(16) << std::setw(0) << string.data << " (" << string.length << ")";
+                cout << string.data << " (" << string.length << ")";
                 fieldOffset += (string.length + 8 - 1) / 8 * 8;
                 break;
         }

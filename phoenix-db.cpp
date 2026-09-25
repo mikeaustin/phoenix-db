@@ -22,34 +22,30 @@ extern Table itemsTable;
 
 Table teamsTable = {
     "teams",
-    new Column[] {
+    {
         { "id", Primitive::UINT64 },
-        { },
     },
     new Relationship[] {
         { "items", &itemsTable, "id", Relationship::ONE_TO_MANY },
-        { },
     },
 };
 
 Table itemsTable = {
     "items", 
-    new Column[] {
+    {
         { "id", Primitive::UINT64 },
         { "teamId", Primitive::UINT64 },
         { "sortOrder", Primitive::UINT32 },
         { "title", Primitive::STRING },
-        { },
     },
     new Relationship[] {
         { "team", &teamsTable, "teamId", Relationship::ONE_TO_ONE },
-        { },
     },
 };
 
-std::map<string, Table> tables = {
-    { "teams", teamsTable },
-    { "items", itemsTable },
+std::map<string, Table *> tables = {
+    { "teams", &teamsTable },
+    { "items", &itemsTable },
 };
 
 //
@@ -181,23 +177,11 @@ Statement expression(string::iterator& input, string::iterator end) {
     return Statement { };
 }
 
-int main() {
-    auto query = std::string("select   items");
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        cerr << "Usage: a.out query" << endl;
 
-    auto begin = query.begin(), end = query.end();
-
-    auto expr = expression(begin, end);
-
-    cout << ">>> " << expr.keyword.value << " " << expr.table.value << endl;
-
-    cout << tables.at(expr.table.value).name << endl;
-
-    //
-
-    auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2), (uint64_t) 2001);
-
-    if (xxx) {
-        cout << xxx->id << endl;
+        exit(1);
     }
 
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
@@ -207,34 +191,33 @@ int main() {
 
     std::memcpy(itemsTable.data, &_items, sizeof(_items));
 
-    cout << endl;
+    //
 
-    dump(teamsTable);
+    auto query = std::string(argv[1]);
 
-    {
-        cout << endl << "ITEMS" << endl << endl;
+    auto begin = query.begin(), end = query.end();
 
-        cout << format("Offset", "ID", "Team ID", "Sort Order", "Title") << endl;
-        cout << repeat("===============", 5) << endl;
+    auto expr = expression(begin, end);
 
-        auto first = itemsTable.data,
-             last = itemsTable.data + sizeof(_items),
-             record = first;
+    dump(*tables.at(expr.table.value));
 
-        while (record < last) {
-            printRow(record - first, { &itemsTable, record });
+    //
 
-            record += recordSize({ &itemsTable, record });
-        }
+    auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2), (uint64_t) 2001);
+
+    if (xxx) {
+        cout << xxx->id << endl;
     }
 
-    {
-        cout << endl << "ITEM WHERE ID = 2000" << endl << endl;
+    cout << endl; dump(teamsTable); cout << endl; dump(itemsTable);
 
-        auto item = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2000);
+    {
+        cout << endl << "ITEM WHERE ID = 2001" << endl << endl;
+
+        auto item = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2001);
 
         if (item) {
-            print(*item);
+            printRow(item->data - itemsTable.data, *item);
         }
     }
 

@@ -44,7 +44,7 @@ struct repeat {
 void print(const Record& record) {
     size_t offset = 0;
 
-    for (const Column *field = record.table->columns; field->type != Primitive::NVALID; ++field) {
+    for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
         switch (field->type) {
             case Primitive::NVALID:
             case Primitive::TYPE32:
@@ -69,7 +69,7 @@ void print(const Record& record) {
 size_t recordSize(const Record& record) {
     size_t fieldOffset = 0;
 
-    for (const Column *field = record.table->columns; field->type != Primitive::NVALID; ++field) {
+    for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
         switch (field->type) {
             case Primitive::NVALID:
             case Primitive::TYPE32:
@@ -93,7 +93,7 @@ void printRow(size_t offset, const Record& record) {
 
     cout << std::left << std::setw(16) << offset;
 
-    for (const Column *field = record.table->columns; field->type != Primitive::NVALID; ++field) {
+    for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
         switch (field->type) {
             case Primitive::NVALID:
             case Primitive::TYPE32:
@@ -117,18 +117,16 @@ void printRow(size_t offset, const Record& record) {
     cout << endl;
 }
 
-void dump(Table table) {
+void dump(const Table& table) {
     cout << table.name << endl << endl;
 
     cout << std::left << std::setw(16) << "offset";
 
-    int i = 0;
-    for (const Column *column = table.columns; column->type != Primitive::NVALID; ++column) {
+    for (auto column = table.columns.begin(); column != table.columns.end(); ++column) {
         cout << std::setw(16) << column->name;
-        ++i;
     }
 
-    cout << endl << repeat("===============", i + 1) << endl;
+    cout << endl << repeat("===============", table.columns.size() + 1) << endl;
 
     auto first = table.data,
          last = table.data + table.size,

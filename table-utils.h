@@ -46,7 +46,7 @@ struct Relationship {
 
 struct Table {
     const std::string name;
-    const Column *columns;
+    const std::vector<Column> columns;
     const Relationship *relationships;
     uint8_t *data;
     size_t size;

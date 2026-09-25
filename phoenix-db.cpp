@@ -13,32 +13,31 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-const Schema teamSchema = {
-    "team", new Field[] {
-        { Primitive::UINT64, "id" },
-        { },
-    },
-};
-
-const Schema itemSchema = {
-    "team", new Field[] {
-        { Primitive::UINT64, "id" },
-        { Primitive::UINT64, "teamId" },
-        { Primitive::UINT32, "sortOrder" },
-        { Primitive::STRING, "title" },
-        { },
-    },
-};
+extern Table teamsTable;
+extern Table itemsTable;
 
 Table teamsTable = {
-    "teams", &teamSchema, new Relationship[] {
-        { "items", "id", &itemSchema, Relationship::ONE_TO_MANY },
+    "teams", new Schema {
+        new Field[] {
+            { Primitive::UINT64, "id" },
+            { },
+        },
+    }, new Relationship[] {
+        { "items", "id", itemsTable.schema, Relationship::ONE_TO_MANY },
     },
 };
 
 Table itemsTable = {
-    "items", &teamSchema, new Relationship[] {
-        { "team", "teamId", &teamSchema, Relationship::ONE_TO_MANY },
+    "items", new Schema {
+        new Field[] {
+            { Primitive::UINT64, "id" },
+            { Primitive::UINT64, "teamId" },
+            { Primitive::UINT32, "sortOrder" },
+            { Primitive::STRING, "title" },
+            { },
+        }
+    }, new Relationship[] {
+        { "team", "teamId", teamsTable.schema, Relationship::ONE_TO_MANY },
     },
 };
 
@@ -100,7 +99,7 @@ std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
     if (index) {
         auto ptr = getRecord(items, itemIdIndex.offsets[*index]);
 
-        return Record { itemSchema.fields, ptr };
+        return Record { itemsTable.schema->fields, ptr };
     }
 
     cerr << "Item not found with id " << id << endl;
@@ -136,9 +135,9 @@ int main() {
         while (record < last) {
             auto id = getInt<uint64_t>(record, 0);
 
-            printRow(record - first, { teamSchema.fields, record });
+            printRow(record - first, { teamsTable.schema->fields, record });
 
-            record += recordSize({ teamSchema.fields, record });
+            record += recordSize({ teamsTable.schema->fields, record });
         }
     }
 
@@ -155,9 +154,9 @@ int main() {
         while (record < last) {
             auto title = getString(record, 20);
 
-            printRow(record - first, { itemSchema.fields, record });
+            printRow(record - first, { itemsTable.schema->fields, record });
 
-            record += recordSize({ itemSchema.fields, record });
+            record += recordSize({ itemsTable.schema->fields, record });
         }
     }
 
@@ -187,7 +186,7 @@ int main() {
                     break;
                 }
 
-                printRow(record - reinterpret_cast<uint8_t *>(items), { itemSchema.fields, record });
+                printRow(record - reinterpret_cast<uint8_t *>(items), { itemsTable.schema->fields, record });
             };
         }
     }

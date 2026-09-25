@@ -30,7 +30,6 @@ struct Field {
 };
 
 struct Schema {
-    const char *name;
     const Field *fields;
 };
 

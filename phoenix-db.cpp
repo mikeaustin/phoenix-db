@@ -13,6 +13,7 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::string;
 
 extern Table teamsTable;
 extern Table itemsTable;
@@ -114,7 +115,81 @@ std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
 //
 //
 
+struct Keyword {
+    enum Value : int8_t {
+        SELECT = 'S',
+    };
+
+    Value value;
+};
+
+struct Identifier {
+    string value;
+};
+
+struct Statement {
+    Keyword keyword;
+    Identifier table;
+};
+
+void spaces(string::iterator& input, string::iterator end) {
+    while (input != end && *input == ' ') {
+        ++input;
+    }
+}
+
+std::optional<Keyword> keyword(string::iterator& input, string::iterator end) {
+    string keyword(input, input + 6);
+
+    if (keyword == "select") {
+        input += 6;
+
+        return Keyword { Keyword::SELECT };
+    }
+
+    return std::nullopt;
+}
+
+std::optional<Identifier> identifier(string::iterator& input, string::iterator end) {
+    auto it = input;
+
+    int i = 0;
+
+    while (it != end && *it != ' ') {
+        ++it;
+        ++i;
+    }
+
+    string identifier(input, it);
+
+    input += i;
+
+    return Identifier { identifier };
+}
+
+Statement expression(string::iterator& input, string::iterator end) {
+    auto _keyword = keyword(input, end);
+    spaces(input, end);
+    auto _table = identifier(input, end);
+
+    if (_table) {
+        return Statement { *_keyword, *_table };
+    }
+
+    return Statement { };
+}
+
 int main() {
+    auto query = std::string("select   items");
+
+    auto begin = query.begin(), end = query.end();
+
+    auto expr = expression(begin, end);
+
+    cout << ">>> " << expr.keyword.value << " " << expr.table.value << endl;
+
+    //
+
     auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2), (uint64_t) 2001);
 
     if (xxx) {

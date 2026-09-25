@@ -8,6 +8,7 @@
 
 #include "table-utils.h"
 #include "file-utils.h"
+#include "print-utils.h"
 
 using std::cout;
 using std::cerr;
@@ -101,7 +102,7 @@ std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
     if (index) {
         auto ptr = getRecord(items, itemIdIndex.offsets[*index]);
 
-        return Record { itemsTable.columns, ptr };
+        return Record { &itemsTable, ptr };
     }
 
     cerr << "Item not found with id " << id << endl;
@@ -137,9 +138,9 @@ int main() {
         while (record < last) {
             auto id = getInt<uint64_t>(record, 0);
 
-            printRow(record - first, { teamsTable.columns, record });
+            printRow(record - first, { &teamsTable, record });
 
-            record += recordSize({ teamsTable.columns, record });
+            record += recordSize({ &teamsTable, record });
         }
     }
 
@@ -156,9 +157,9 @@ int main() {
         while (record < last) {
             auto title = getString(record, 20);
 
-            printRow(record - first, { itemsTable.columns, record });
+            printRow(record - first, { &itemsTable, record });
 
-            record += recordSize({ itemsTable.columns, record });
+            record += recordSize({ &itemsTable, record });
         }
     }
 
@@ -188,7 +189,7 @@ int main() {
                     break;
                 }
 
-                printRow(record - reinterpret_cast<uint8_t *>(items), { itemsTable.columns, record });
+                printRow(record - reinterpret_cast<uint8_t *>(items), { &itemsTable, record });
             };
         }
     }

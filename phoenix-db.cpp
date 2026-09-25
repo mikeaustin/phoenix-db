@@ -1,6 +1,7 @@
 // g++ -std=c++20 -O3 -flto phoenix-db.cpp
 
 #include <iostream>
+#include <map>
 #include <cstring>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -9,6 +10,7 @@
 #include "table-utils.h"
 #include "file-utils.h"
 #include "print-utils.h"
+#include "search-utils.h"
 
 using std::cout;
 using std::cerr;
@@ -45,9 +47,9 @@ Table itemsTable = {
     },
 };
 
-Table tables[] = {
-    teamsTable,
-    itemsTable,
+std::map<string, Table> tables = {
+    { "teams", teamsTable },
+    { "items", itemsTable },
 };
 
 //
@@ -188,6 +190,8 @@ int main() {
 
     cout << ">>> " << expr.keyword.value << " " << expr.table.value << endl;
 
+    cout << tables.at(expr.table.value).name << endl;
+
     //
 
     auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2), (uint64_t) 2001);
@@ -196,28 +200,16 @@ int main() {
         cout << xxx->id << endl;
     }
 
-    uint8_t *items = openTable("example.bin");
+    teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
+    teamsTable.size = sizeof(teams);
+    itemsTable.data = openTable("example.bin");
+    itemsTable.size = sizeof(_items);
 
-    std::memcpy(items, &_items, sizeof(_items));
+    std::memcpy(itemsTable.data, &_items, sizeof(_items));
 
-    {
-        cout << "TEAMS" << endl << endl;
+    cout << endl;
 
-        cout << format("Offset", "ID") << endl;
-        cout << repeat("===============", 2) << endl;
-
-        auto first = getRecord(&teams, 0),
-             last = getRecord(&teams, sizeof(teams)),
-             record = first;
-
-        while (record < last) {
-            auto id = getInt<uint64_t>(record, 0);
-
-            printRow(record - first, { &teamsTable, record });
-
-            record += recordSize({ &teamsTable, record });
-        }
-    }
+    dump(teamsTable);
 
     {
         cout << endl << "ITEMS" << endl << endl;
@@ -225,13 +217,11 @@ int main() {
         cout << format("Offset", "ID", "Team ID", "Sort Order", "Title") << endl;
         cout << repeat("===============", 5) << endl;
 
-        auto first = getRecord(items, 0),
-             last = getRecord(items, sizeof(_items)),
+        auto first = itemsTable.data,
+             last = itemsTable.data + sizeof(_items),
              record = first;
 
         while (record < last) {
-            auto title = getString(record, 20);
-
             printRow(record - first, { &itemsTable, record });
 
             record += recordSize({ &itemsTable, record });
@@ -241,7 +231,7 @@ int main() {
     {
         cout << endl << "ITEM WHERE ID = 2000" << endl << endl;
 
-        auto item = findItemWithId(reinterpret_cast<uint8_t *>(items), 2000);
+        auto item = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2000);
 
         if (item) {
             print(*item);
@@ -258,13 +248,13 @@ int main() {
 
         if (teamIndex) {
             for (size_t offsetIndex = itemTeamIdIndex.indexes[*teamIndex]; offsetIndex < sizeof(itemTeamIdIndex.offsets) / sizeof(size_t) ; ++offsetIndex) {
-                auto record = getRecord(items, itemTeamIdIndex.offsets[offsetIndex]);
+                auto record = getRecord(itemsTable.data, itemTeamIdIndex.offsets[offsetIndex]);
 
                 if (offsetIndex >= itemTeamIdIndex.indexes[*teamIndex + 1]) {
                     break;
                 }
 
-                printRow(record - reinterpret_cast<uint8_t *>(items), { &itemsTable, record });
+                printRow(record - reinterpret_cast<uint8_t *>(itemsTable.data), { &itemsTable, record });
             };
         }
     }

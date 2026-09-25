@@ -14,14 +14,14 @@ using std::cerr;
 using std::endl;
 
 const Schema teamSchema = {
-    "team", {
+    "team", new Field[] {
         { Primitive::UINT64, "id" },
         { },
     },
 };
 
 const Schema itemSchema = {
-    "team", {
+    "team", new Field[] {
         { Primitive::UINT64, "id" },
         { Primitive::UINT64, "teamId" },
         { Primitive::UINT32, "sortOrder" },
@@ -30,24 +30,15 @@ const Schema itemSchema = {
     },
 };
 
-const Relationship teamRelationships[] = {
-    { "items", "id", itemSchema, Relationship::ONE_TO_MANY },
-};
-
-const Relationship itemRelationships[] = {
-    { "team", "teamId", teamSchema, Relationship::ONE_TO_ONE },
-};
-
-
 Table teamsTable = {
-    "teams", teamSchema, {
-        "items", "id", itemSchema, Relationship::ONE_TO_MANY
+    "teams", &teamSchema, new Relationship[] {
+        { "items", "id", &itemSchema, Relationship::ONE_TO_MANY },
     },
 };
 
 Table itemsTable = {
-    "items", teamSchema, {
-        "items", "id", itemSchema, Relationship::ONE_TO_MANY
+    "items", &teamSchema, new Relationship[] {
+        { "team", "teamId", &teamSchema, Relationship::ONE_TO_MANY },
     },
 };
 

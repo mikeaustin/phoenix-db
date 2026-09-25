@@ -31,7 +31,7 @@ struct Field {
 
 struct Schema {
     const char *name;
-    const Field fields[];
+    const Field *fields;
 };
 
 struct Record {
@@ -74,14 +74,14 @@ struct Relationship {
 
     const char *name;
     const char *foreignKey;
-    const Schema& relation;
+    const Schema *relation;
     const Type type;
 };
 
 struct Table {
     const char *name;
-    const Schema& schema;
-    const Relationship relationships[];
+    const Schema *schema;
+    const Relationship *relationships;
 };
 
 //

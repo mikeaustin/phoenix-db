@@ -149,18 +149,11 @@ std::optional<Keyword> keyword(string::iterator& input, string::iterator end) {
 }
 
 std::optional<Identifier> identifier(string::iterator& input, string::iterator end) {
-    auto it = input;
+    auto space_it = std::find(input, end, ' ');
 
-    int i = 0;
+    string identifier(input, space_it);
 
-    while (it != end && *it != ' ') {
-        ++it;
-        ++i;
-    }
-
-    string identifier(input, it);
-
-    input += i;
+    input += std::distance(input, space_it);
 
     return Identifier { identifier };
 }

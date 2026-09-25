@@ -25,8 +25,8 @@ namespace Primitive {
 };
 
 struct Column {
-    const Primitive::Type type;
     const char *name;
+    const Primitive::Type type;
 };
 
 struct Schema {
@@ -67,16 +67,16 @@ struct IndexIndex {
 struct Table;
 
 struct Relationship {
-    enum Type : uint32_t {
+    enum Relation : uint32_t {
         ONE_TO_ONE = 0,
         ONE_TO_MANY = 1,
         MANY_TO_MANY = 2,
     };
 
     const char *name;
-    const char *foreignKey;
     const Table *relation;
-    const Type type;
+    const char *foreignKey;
+    const Relation type;
 };
 
 struct Table {

@@ -19,25 +19,27 @@ extern Table itemsTable;
 Table teamsTable = {
     "teams",
     new Column[] {
-        { Primitive::UINT64, "id" },
+        { "id", Primitive::UINT64 },
         { },
     },
     new Relationship[] {
-        { "items", "id", &itemsTable, Relationship::ONE_TO_MANY },
+        { "items", &itemsTable, "id", Relationship::ONE_TO_MANY },
+        { },
     },
 };
 
 Table itemsTable = {
     "items", 
     new Column[] {
-        { Primitive::UINT64, "id" },
-        { Primitive::UINT64, "teamId" },
-        { Primitive::UINT32, "sortOrder" },
-        { Primitive::STRING, "title" },
+        { "id", Primitive::UINT64 },
+        { "teamId", Primitive::UINT64 },
+        { "sortOrder", Primitive::UINT32 },
+        { "title", Primitive::STRING },
         { },
     },
     new Relationship[] {
-        { "team", "teamId", &teamsTable, Relationship::ONE_TO_MANY },
+        { "team", &teamsTable, "teamId", Relationship::ONE_TO_ONE },
+        { },
     },
 };
 

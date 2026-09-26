@@ -136,6 +136,20 @@ void whitespace(string::iterator& input, string::iterator end) {
     }
 }
 
+void expect(const char value, string::iterator& input, string::iterator end) {
+    if (input != end && *input == value) {
+        throw "nope";
+    }
+}
+
+bool match(const char value, string::iterator& input, string::iterator end) {
+    if (input != end && *input == value) {
+        return true;
+    }
+
+    return false;
+}
+
 std::optional<Keyword> keyword(string::iterator& input, string::iterator end) {
     string keyword(input, input + 6);
 
@@ -156,6 +170,13 @@ std::optional<Identifier> identifier(string::iterator& input, string::iterator e
     input += std::distance(input, space_it);
 
     return Identifier { identifier };
+}
+
+std::optional<Identifier> fields(string::iterator& input, string::iterator end) {
+    expect('{', input, end);
+    expect('}', input, end);
+
+    return std::nullopt;
 }
 
 Statement expression(string::iterator& input, string::iterator end) {

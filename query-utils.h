@@ -71,15 +71,19 @@ std::optional<Keyword> keyword(string::iterator& input, string::iterator end) {
 }
 
 std::optional<Identifier> identifier(string::iterator& input, string::iterator end) {
-    string chars = ", ";
+    string identifier = "";
 
-    auto space_it = std::find_first_of(input, end, chars.begin(), chars.end());
+    identifier.reserve(20);
 
-    string identifier(input, space_it);
+    while (input != end && std::isalpha(*input)) {
+        identifier += *input++;
+    }
 
-    input += std::distance(input, space_it);
+    if (identifier.size() > 0) {
+        return Identifier { identifier };
+    }
 
-    return Identifier { identifier };
+    return std::nullopt;
 }
 
 std::optional<std::vector<Field>> fields(string::iterator& input, string::iterator end) {

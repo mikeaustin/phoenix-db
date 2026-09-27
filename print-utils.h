@@ -117,24 +117,24 @@ void printRow(size_t offset, const Record& record) {
     cout << endl;
 }
 
-void dump(const Table& table) {
-    cout << table.name << endl << endl;
+void dump(const Table *table) {
+    cout << table->name << endl << endl;
 
     cout << std::left << std::setw(16) << "offset";
 
-    for (auto column = table.columns.begin(); column != table.columns.end(); ++column) {
+    for (auto column = table->columns.begin(); column != table->columns.end(); ++column) {
         cout << std::setw(16) << column->name;
     }
 
-    cout << endl << repeat("===============", table.columns.size() + 1) << endl;
+    cout << endl << repeat("===============", table->columns.size() + 1) << endl;
 
-    auto first = table.data,
-         last = table.data + table.size,
+    auto first = table->data,
+         last = table->data + table->size,
          record = first;
 
     while (record < last) {
-        printRow(record - first, { &table, record });
+        printRow(record - first, { table, record });
 
-        record += recordSize({ &table, record });
+        record += recordSize({ table, record });
     }
 }

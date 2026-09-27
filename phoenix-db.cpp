@@ -11,11 +11,15 @@
 #include "file-utils.h"
 #include "print-utils.h"
 #include "search-utils.h"
+#include "query-utils.h"
 
+using std::cin;
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+
+using namespace std;
 
 extern Table teamsTable;
 extern Table itemsTable;
@@ -109,95 +113,7 @@ std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
     return std::nullopt;
 }
 
-//
-//
-//
-
-struct Keyword {
-    enum Value : int8_t {
-        SELECT = 'S',
-    };
-
-    Value value;
-};
-
-struct Identifier {
-    string value;
-};
-
-struct Statement {
-    Keyword keyword;
-    Identifier table;
-};
-
-void whitespace(string::iterator& input, string::iterator end) {
-    while (input != end && std::isspace(*input)) {
-        ++input;
-    }
-}
-
-void expect(const char value, string::iterator& input, string::iterator end) {
-    if (input != end && *input == value) {
-        throw "nope";
-    }
-}
-
-bool match(const char value, string::iterator& input, string::iterator end) {
-    if (input != end && *input == value) {
-        return true;
-    }
-
-    return false;
-}
-
-std::optional<Keyword> keyword(string::iterator& input, string::iterator end) {
-    string keyword(input, input + 6);
-
-    if (keyword == "select") {
-        input += 6;
-
-        return Keyword { Keyword::SELECT };
-    }
-
-    return std::nullopt;
-}
-
-std::optional<Identifier> identifier(string::iterator& input, string::iterator end) {
-    auto space_it = std::find(input, end, ' ');
-
-    string identifier(input, space_it);
-
-    input += std::distance(input, space_it);
-
-    return Identifier { identifier };
-}
-
-std::optional<Identifier> fields(string::iterator& input, string::iterator end) {
-    expect('{', input, end);
-    expect('}', input, end);
-
-    return std::nullopt;
-}
-
-Statement expression(string::iterator& input, string::iterator end) {
-    auto _keyword = keyword(input, end);
-    whitespace(input, end);
-    auto _table = identifier(input, end);
-
-    if (_table) {
-        return Statement { *_keyword, *_table };
-    }
-
-    return Statement { };
-}
-
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        cerr << "Usage: a.out query" << endl;
-
-        exit(1);
-    }
-
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
     teamsTable.size = sizeof(teams);
     itemsTable.data = openTable("example.bin");
@@ -207,23 +123,15 @@ int main(int argc, char *argv[]) {
 
     //
 
-    auto query = std::string(argv[1]);
-
-    auto begin = query.begin(), end = query.end();
-
-    auto expr = expression(begin, end);
-
-    dump(*tables.at(expr.table.value));
-
-    //
-
     auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2), (uint64_t) 2001);
 
     if (xxx) {
         cout << xxx->id << endl;
     }
 
-    cout << endl; dump(teamsTable); cout << endl; dump(itemsTable);
+    cout << endl;
+    
+    dump(&teamsTable); cout << endl; dump(&itemsTable);
 
     {
         cout << endl << "ITEM WHERE ID = 2001" << endl << endl;
@@ -253,6 +161,24 @@ int main(int argc, char *argv[]) {
 
                 printRow(record - reinterpret_cast<uint8_t *>(itemsTable.data), { &itemsTable, record });
             };
+        }
+    }
+
+    cout << endl;
+
+    string query;
+
+    while (true) {
+        cout << "] "; std::getline(cin, query);
+
+        auto begin = query.begin(), end = query.end();
+
+        auto expr = expression(begin, end);
+
+        auto table = tables.find(expr.table.value);
+
+        if (table != tables.end()) {
+            dump(table->second);
         }
     }
 

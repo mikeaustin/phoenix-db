@@ -31,6 +31,8 @@ void whitespace(string::iterator& input, string::iterator end) {
 }
 
 bool peek(const char value, string::iterator& input, string::iterator end) {
+    whitespace(input, end);
+    
     if (input != end && *input == value) {
         return true;
     }
@@ -39,6 +41,8 @@ bool peek(const char value, string::iterator& input, string::iterator end) {
 }
 
 bool expect(const char value, string::iterator& input, string::iterator end) {
+    whitespace(input, end);
+
     if (input != end && *input == value) {
         ++input;
 
@@ -49,6 +53,8 @@ bool expect(const char value, string::iterator& input, string::iterator end) {
 }
 
 bool match(const char value, string::iterator& input, string::iterator end) {
+    whitespace(input, end);
+
     if (input != end && *input == value) {
         ++input;
 
@@ -59,6 +65,8 @@ bool match(const char value, string::iterator& input, string::iterator end) {
 }
 
 std::optional<Keyword> keyword(string::iterator& input, string::iterator end) {
+    whitespace(input, end);
+
     string keyword(input, input + 6);
 
     if (keyword == "select") {
@@ -74,6 +82,8 @@ std::optional<Identifier> identifier(string::iterator& input, string::iterator e
     string identifier = "";
 
     identifier.reserve(20);
+
+    whitespace(input, end);
 
     while (input != end && std::isalpha(*input)) {
         identifier += *input++;
@@ -96,21 +106,17 @@ std::optional<std::vector<Field>> fields(string::iterator& input, string::iterat
     expect('{', input, end);
 
     while (true) {
-        whitespace(input, end);
-
         auto _identifier = identifier(input, end);
 
         if (_identifier) {
             fields.push_back(Field { _identifier->value });
         }
 
-        whitespace(input, end);
-
         if (!match(',', input, end)) {
             break;
         }
     }
-    whitespace(input, end);
+
     expect('}', input, end);
 
     return fields;
@@ -118,9 +124,7 @@ std::optional<std::vector<Field>> fields(string::iterator& input, string::iterat
 
 Statement expression(string::iterator& input, string::iterator end) {
     auto _keyword = keyword(input, end);
-    whitespace(input, end);
     auto _table = identifier(input, end);
-    whitespace(input, end);
     auto _fields = fields(input, end);
 
     if (_table) {

@@ -13,12 +13,12 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5, typen
 std::ostream& operator <<(std::ostream& ostream, const FormatWrapper<T1, T2, T3, T4, T5, T6, T7>& wrapper) {
     ostream << std::left;
 
-    ostream << std::setw(16) << wrapper.a; if (!&wrapper.b) return ostream;
-    ostream << std::setw(16) << wrapper.b; if (!&wrapper.c) return ostream;
-    ostream << std::setw(16) << wrapper.c; if (!&wrapper.d) return ostream;
-    ostream << std::setw(16) << wrapper.d; if (!&wrapper.e) return ostream;
-    ostream << std::setw(16) << wrapper.e; if (!&wrapper.f) return ostream;
-    ostream << std::setw(16) << wrapper.f; if (!&wrapper.g) return ostream;
+    ostream << std::setw(16) << wrapper.a; if (!wrapper.b) return ostream;
+    ostream << std::setw(16) << wrapper.b; if (!wrapper.c) return ostream;
+    ostream << std::setw(16) << wrapper.c; if (!wrapper.d) return ostream;
+    ostream << std::setw(16) << wrapper.d; if (!wrapper.e) return ostream;
+    ostream << std::setw(16) << wrapper.e; if (!wrapper.f) return ostream;
+    ostream << std::setw(16) << wrapper.f; if (!wrapper.g) return ostream;
     ostream << std::setw(16) << wrapper.g;
 
     return ostream;

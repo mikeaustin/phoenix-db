@@ -42,6 +42,13 @@ struct repeat {
     }
 };
 
+template <typename... Args>
+void format2(const Args&... args) {
+    ((std::cout << std::setw(16) << args), ...);
+
+    std::cout << endl;
+}
+
 void print(const Record& record) {
     size_t offset = 0;
 

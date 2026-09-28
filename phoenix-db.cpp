@@ -7,11 +7,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "table-utils.h"
-#include "file-utils.h"
-#include "print-utils.h"
-#include "search-utils.h"
-#include "query-utils.h"
+#include "utils/table-utils.h"
+#include "utils/file-utils.h"
+#include "utils/search-utils.h"
+#include "utils/query-utils.h"
+#include "utils/print-utils.h"
 
 using std::cin;
 using std::cout;
@@ -170,15 +170,13 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         cout << "] "; std::getline(cin, query);
-
         auto begin = query.begin(), end = query.end();
 
         auto expr = expression(begin, end);
-
         auto table = tables.find(expr.table.value);
 
         if (table != tables.end()) {
-            dump(table->second);
+            dump(table->second, expr.fields);
         }
     }
 

@@ -88,12 +88,16 @@ size_t recordSize(const Record& record) {
     return fieldOffset;
 }
 
-void printRow(size_t offset, const Record& record) {
+void printRow(size_t offset, const Record& record, const std::vector<Field>& fields = {}) {
     size_t fieldOffset = 0;
 
     cout << std::left << std::setw(16) << offset;
 
     for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
+        // if (std::find(fields.begin(), fields.end(), string(field->name)) != fields.end()) {
+        //     continue;
+        // }
+
         switch (field->type) {
             case Primitive::NVALID:
             case Primitive::TYPE32:
@@ -117,8 +121,13 @@ void printRow(size_t offset, const Record& record) {
     cout << endl;
 }
 
-void dump(const Table *table) {
+void dump(const Table *table, const std::vector<Field>& fields = {}) {
     cout << table->name << endl << endl;
+
+    for (auto field = fields.begin(); field != fields.end(); ++field) {
+        cout << field->name << " ";
+    }
+    cout << endl << endl;
 
     cout << std::left << std::setw(16) << "offset";
 
@@ -133,7 +142,7 @@ void dump(const Table *table) {
          record = first;
 
     while (record < last) {
-        printRow(record - first, { table, record });
+        printRow(record - first, { table, record }, fields);
 
         record += recordSize({ table, record });
     }

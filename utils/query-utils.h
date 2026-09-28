@@ -1,3 +1,6 @@
+#ifndef QUERY_UTILS
+#define QUERY_UTILS
+
 #include <iostream>
 
 using std::string;
@@ -137,3 +140,5 @@ Statement expression(string::iterator& input, string::iterator end) {
 
     return Statement { };
 }
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef SEARCH_UTILS
+#define SEARCH_UTILS
+
 #include <optional>
 
 template <typename T>
@@ -41,3 +44,5 @@ T *lowerBound2(T *array, size_t size, U value) {
 
     return nullptr;
 }
+
+#endif

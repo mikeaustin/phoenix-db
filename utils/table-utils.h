@@ -1,3 +1,6 @@
+#ifndef TABLE_UTILS
+#define TABLE_UTILS
+
 #include <iomanip>
 #include <optional>
 #include <chrono>
@@ -108,3 +111,5 @@ String getString(uint8_t *data, size_t offset) {
       reinterpret_cast<char *>(data + 4 + offset)
     };
 }
+
+#endif

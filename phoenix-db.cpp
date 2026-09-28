@@ -6,6 +6,8 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 #include "utils/table-utils.h"
 #include "utils/file-utils.h"
@@ -73,7 +75,7 @@ template<int TTitleLength> struct Item {
 struct Teams {
     Team team1 = { 100 };
     Team team2 = { 101 };
-} teams;
+} _teams;
 
 struct Items {
     Item<4> item1 = { 2000, 100, 3, { 4, { 'A', 'B', 'C', 0 } } };
@@ -114,9 +116,9 @@ std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
 }
 
 int main(int argc, char *argv[]) {
-    teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
-    teamsTable.size = sizeof(teams);
-    itemsTable.data = openTable("example.bin");
+    teamsTable.data = reinterpret_cast<uint8_t *>(&_teams);
+    teamsTable.size = sizeof(_teams);
+    itemsTable.data = openTable("items.table");
     itemsTable.size = sizeof(_items);
 
     std::memcpy(itemsTable.data, &_items, sizeof(_items));
@@ -164,6 +166,85 @@ int main(int argc, char *argv[]) {
     }
 
     cout << endl;
+
+    //
+
+    const int PORT = 8080;
+    const int BUFFER_SIZE = 1024;
+
+    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_fd < 0) {
+        std::cerr << "Failed to create socket" << endl;
+
+        return 1;
+    }
+
+    int opt = 1;
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    sockaddr_in server_addr{};
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(PORT);
+
+    if (bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+        std::cerr << "Bind failed" << endl;
+        close(server_fd);
+
+        return 1;
+    }
+
+    if (listen(server_fd, 3) < 0) {
+        std::cerr << "Listen failed" << endl;
+        close(server_fd);
+
+        return 1;
+    }
+
+    std::cout << "Echo server is listening on port " << PORT << "..." << endl;
+
+    sockaddr_in client_addr { };
+    // socklen_t client_len = sizeof(client_addr);
+    // int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, &client_len);
+    
+    // if (client_fd < 0) {
+    //     std::cerr << "Accept failed\n";
+    //     close(server_fd);
+
+    //     return 1;
+    // }
+
+    std::cout << "Client connected from " << inet_ntoa(client_addr.sin_addr) << "\n";
+
+    while (true) {
+        socklen_t addrlen = sizeof(server_addr);
+        int client_socket = accept(server_fd, (struct sockaddr *) &server_addr, &addrlen);
+        if (client_socket < 0) {
+            std::cerr << "Failed to accept connection\n";
+            continue;
+        }
+
+        // Read incoming request data (for simple demonstration, we won't fully parse it)
+        char buffer[1024] = { 0 };
+        read(client_socket, buffer, 1024);
+        std::cout << "Received Request:\n" << buffer << "\n";
+
+        // 5. Formulate a raw HTTP response
+        std::string http_response = 
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/plain\r\n"
+            "Content-Length: 20\r\n"
+            "\r\n"
+            "Hello from native!\r\n";
+
+        // Send response and close connection
+        write(client_socket, http_response.c_str(), http_response.size());
+        close(client_socket);
+    }
+
+    close(server_fd);
+
+    //
 
     string query;
 

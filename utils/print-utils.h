@@ -1,3 +1,6 @@
+#ifndef PRINT_UTILS
+#define PRINT_UTILS
+
 template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
 struct FormatWrapper {
   const T1& a;
@@ -149,3 +152,5 @@ void dump(const Table *table, const std::vector<Field>& fields = {}) {
         row += recordSize({ table, row });
     }
 }
+
+#endif

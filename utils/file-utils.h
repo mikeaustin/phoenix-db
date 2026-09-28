@@ -1,3 +1,6 @@
+#ifndef FILE_UTILS
+#define FILE_UTILS
+
 uint8_t *openTable(const char *filename) {
     const size_t FILE_SIZE = 4096;
 
@@ -31,3 +34,5 @@ uint8_t *openTable(const char *filename) {
 
     return items;
 }
+
+#endif

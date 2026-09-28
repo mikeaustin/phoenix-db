@@ -146,8 +146,7 @@ int main(int argc, char *argv[]) {
     {
         cout << endl << "ITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER" << endl << endl;
 
-        format2("Offset", "ID", "Team ID", "Sort Order", "Title");
-        repeat2("===============", 5);
+        header("Offset", "ID", "Team ID", "Sort Order", "Title");
 
         auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
 

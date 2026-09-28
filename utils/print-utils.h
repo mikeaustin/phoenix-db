@@ -59,6 +59,13 @@ void repeat2(const T& arg, size_t count) {
     std::cout << endl;
 }
 
+template <typename... Args>
+void header(const Args&... args) {
+    format2(args...);
+
+    repeat2("===============", sizeof...(args));
+}
+
 void print(const Record& record) {
     size_t offset = 0;
 

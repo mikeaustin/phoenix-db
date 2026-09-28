@@ -42,9 +42,19 @@ struct repeat {
     }
 };
 
+
 template <typename... Args>
 void format2(const Args&... args) {
     ((std::cout << std::setw(16) << args), ...);
+
+    std::cout << endl;
+}
+
+template <typename T>
+void repeat2(const T& arg, size_t count) {
+    for (size_t i = 0; i < count; ++i) {
+        std::cout << std::left << std::setw(16) << arg;
+    }
 
     std::cout << endl;
 }

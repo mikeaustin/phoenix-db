@@ -11,20 +11,21 @@ struct FormatWrapper {
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
 std::ostream& operator <<(std::ostream& ostream, const FormatWrapper<T1, T2, T3, T4, T5, T6, T7>& wrapper) {
-    ostream << std::left
-      << std::setw(16) << wrapper.a
-      << std::setw(16) << wrapper.b
-      << std::setw(16) << wrapper.c
-      << std::setw(16) << wrapper.d
-      << std::setw(16) << wrapper.e
-      << std::setw(16) << wrapper.f
-      << std::setw(16) << wrapper.g;
+    ostream << std::left;
+
+    ostream << std::setw(16) << wrapper.a; if (!wrapper.b) return ostream;
+    ostream << std::setw(16) << wrapper.b; if (!wrapper.c) return ostream;
+    ostream << std::setw(16) << wrapper.c; if (!wrapper.d) return ostream;
+    ostream << std::setw(16) << wrapper.d; if (!wrapper.e) return ostream;
+    ostream << std::setw(16) << wrapper.e; if (!wrapper.f) return ostream;
+    ostream << std::setw(16) << wrapper.f; if (!wrapper.g) return ostream;
+    ostream << std::setw(16) << wrapper.g;
 
     return ostream;
 }
 
-template <typename T1, typename T2 = const char *, typename T3 = const char *, typename T4 = const char *, typename T5 = const char *, typename T6 = const char *, typename T7 = const char *>
-FormatWrapper<T1, T2, T3, T4, T5, T6, T7> format(const T1& a, const T2& b = "", const T3& c = "", const T4& d = "", const T5& e = "", const T6& f = "", const T7& g = "") {
+template <typename T1, typename T2 = void *, typename T3 = void *, typename T4 = void *, typename T5 = void *, typename T6 = void *, typename T7 = void *>
+FormatWrapper<T1, T2, T3, T4, T5, T6, T7> format(const T1& a, const T2& b = nullptr , const T3& c = nullptr, const T4& d = nullptr, const T5& e = nullptr, const T6& f = nullptr, const T7& g = nullptr) {
   return FormatWrapper { a, b, c, d, e, f, g };
 }
 

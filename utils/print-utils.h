@@ -89,10 +89,10 @@ size_t recordSize(const Record& record) {
     return fieldOffset;
 }
 
-void printRow(size_t offset, const Record& record, const std::vector<Field>& fields = {}) {
+void printRow(const Record& record, const std::vector<Field>& fields = {}) {
     size_t fieldOffset = 0;
 
-    cout << std::left << std::setw(16) << offset;
+    cout << std::left << std::setw(16) << record.data - record.table->data;
 
     for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
         // if (std::find(fields.begin(), fields.end(), string(field->name)) != fields.end()) {
@@ -145,7 +145,7 @@ void dump(const Table *table, const std::vector<Field>& fields = {}) {
          record = first;
 
     while (record < last) {
-        printRow(record - first, { table, record }, fields);
+        printRow({ table, record }, fields);
 
         record += recordSize({ table, record });
     }

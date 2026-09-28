@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
         auto item = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2001);
 
         if (item) {
-            printRow(item->data - itemsTable.data, *item);
+            printRow(*item);
         }
     }
 
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
                     break;
                 }
 
-                printRow(record - reinterpret_cast<uint8_t *>(itemsTable.data), { &itemsTable, record });
+                printRow({ &itemsTable, record });
             };
         }
     }

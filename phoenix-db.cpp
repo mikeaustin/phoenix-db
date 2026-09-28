@@ -103,9 +103,9 @@ std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
     auto index = lowerBound(itemIdIndex.ids, sizeof(itemIdIndex.ids), id);
 
     if (index) {
-        auto ptr = getRecord(items, itemIdIndex.offsets[*index]);
+        auto row = getRow(items, itemIdIndex.offsets[*index]);
 
-        return Record { &itemsTable, ptr };
+        return Record { &itemsTable, row };
     }
 
     cerr << "Item not found with id " << id << endl;
@@ -136,10 +136,10 @@ int main(int argc, char *argv[]) {
     {
         cout << endl << "ITEM WHERE ID = 2001" << endl << endl;
 
-        auto item = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2001);
+        auto record = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2001);
 
-        if (item) {
-            printRow(*item);
+        if (record) {
+            printRecord(*record);
         }
     }
 
@@ -152,13 +152,13 @@ int main(int argc, char *argv[]) {
 
         if (teamIndex) {
             for (size_t offsetIndex = itemTeamIdIndex.indexes[*teamIndex]; offsetIndex < sizeof(itemTeamIdIndex.offsets) / sizeof(size_t) ; ++offsetIndex) {
-                auto record = getRecord(itemsTable.data, itemTeamIdIndex.offsets[offsetIndex]);
+                auto row = getRow(itemsTable.data, itemTeamIdIndex.offsets[offsetIndex]);
 
                 if (offsetIndex >= itemTeamIdIndex.indexes[*teamIndex + 1]) {
                     break;
                 }
 
-                printRow({ &itemsTable, record });
+                printRecord({ &itemsTable, row });
             };
         }
     }

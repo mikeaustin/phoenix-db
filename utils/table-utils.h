@@ -87,8 +87,8 @@ struct IndexIndex {
 
 //
 
-uint8_t *getRecord(void *records, size_t offset) {
-    return static_cast<uint8_t *>(records) + offset;
+uint8_t *getRow(void *data, size_t offset) {
+    return static_cast<uint8_t *>(data) + offset;
 }
 
 template <typename T>

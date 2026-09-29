@@ -29,6 +29,8 @@ Table teamsTable = {
     "teams",
     {
         { "id", Primitive::UINT64 },
+        { "padding", Primitive::UINT32 },
+        { "name", Primitive::STRING },
     },
     new Relationship[] {
         { "items", &itemsTable, "id", Relationship::ONE_TO_MANY },
@@ -60,11 +62,15 @@ template<int TLength> struct _String {
     char title[TLength];
 };
 
+template<int TNameLength>
 struct Team {
     const uint64_t id;
+    const uint32_t sortOrder;
+    const _String<TNameLength> name;
 };
 
-template<int TTitleLength> struct Item {
+template<int TTitleLength>
+struct Item {
     const uint64_t id;
     const uint64_t teamId;
     const uint32_t sortOrder;
@@ -72,8 +78,8 @@ template<int TTitleLength> struct Item {
 };
 
 struct Teams {
-    Team team1 = { 100 };
-    Team team2 = { 101 };
+    Team<10> team1 = { 100, 1, { 10, { 'T', 'e', 'a', 'm', ' ', 'A', 0 } } };
+    Team<10> team2 = { 101, 2, { 10, { 'T', 'e', 'a', 'm', ' ', 'B', 0 } } };
 } _teams;
 
 struct Items {

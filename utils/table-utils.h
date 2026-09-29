@@ -11,7 +11,6 @@ using std::endl;
 
 namespace Primitive {
     enum Type : uint32_t {
-        NVALID = 0,
         TYPE32 = 1,
         UINT32 = 2,
         UINT64 = 3,

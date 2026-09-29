@@ -29,7 +29,6 @@ size_t recordSize(const Record& record) {
 
     for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
         switch (field->type) {
-            case Primitive::NVALID:
             case Primitive::TYPE32:
             case Primitive::UINT32:
             case Primitive::UINT64:
@@ -52,25 +51,31 @@ void printRecord(const Record& record, const std::vector<Field>& fields = {}) {
     cout << std::left << std::setw(16) << record.data - record.table->data;
 
     for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
-        // if (std::find(fields.begin(), fields.end(), string(field->name)) != fields.end()) {
-        //     continue;
-        // }
+        auto it = std::find_if(fields.begin(), fields.end(), [field](const Field& _field) {
+            return _field.name == field->name;
+        });
 
-        switch (field->type) {
-            case Primitive::NVALID:
-            case Primitive::TYPE32:
-                break;
-            case Primitive::UINT32:
-                cout << std::left << std::setw(16) << getInt<uint32_t>(record.data, fieldOffset);
-                break;
-            case Primitive::UINT64:
-                cout << std::left << std::setw(16) << getInt<uint64_t>(record.data, fieldOffset);
-                break;
-            case Primitive::STRING:
-                auto string = getString(record.data, fieldOffset);
-                cout << string.data << " (" << string.length << ")";
-                fieldOffset += (string.length + 8 - 1) / 8 * 8;
-                break;
+        if (fields.size() == 0 || it != fields.end()) {
+            switch (field->type) {
+                case Primitive::TYPE32:
+                    break;
+                case Primitive::UINT32:
+                    cout << std::left << std::setw(16) << getInt<uint32_t>(record.data, fieldOffset);
+                    break;
+                case Primitive::UINT64:
+                    cout << std::left << std::setw(16) << getInt<uint64_t>(record.data, fieldOffset);
+                    break;
+                case Primitive::STRING:
+                    auto string = getString(record.data, fieldOffset);
+                    cout << string.data << " (" << string.length << ")";
+                    break;
+            }
+        }
+
+        if (field->type == Primitive::STRING) {
+            auto string = getString(record.data, fieldOffset);
+
+            fieldOffset += (string.length + 8 - 1) / 8 * 8;
         }
 
         fieldOffset += Primitive::sizes[static_cast<size_t>(field->type)];

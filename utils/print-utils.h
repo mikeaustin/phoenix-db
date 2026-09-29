@@ -91,18 +91,25 @@ void dump(const Table *table, const std::vector<Field>& fields = {}) {
         for (auto field = fields.begin(); field != fields.end(); ++field) {
             cout << field->name << " ";
         }
+
         cout << endl << endl;
     }
 
     cout << std::left << std::setw(16) << "offset";
 
     for (auto column = table->columns.begin(); column != table->columns.end(); ++column) {
-        cout << std::setw(16) << column->name;
+        auto it = std::find_if(fields.begin(), fields.end(), [column](const Field& _field) {
+            return _field.name == column->name;
+        });
+
+        if (fields.size() == 0 || it != fields.end()) {
+            cout << std::setw(16) << column->name;
+        }
     }
 
     cout << endl;
 
-    repeat("===============", table->columns.size() + 1);
+    repeat("===============", fields.size() > 0 ? fields.size() + 1 : table->columns.size() + 1);
 
     auto first = table->data,
          last = table->data + table->size,

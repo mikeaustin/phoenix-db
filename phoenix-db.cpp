@@ -153,7 +153,12 @@ int main(int argc, char *argv[]) {
     {
         cout << endl << "ITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER" << endl << endl;
 
-        header("Offset", "ID", "Team ID", "Sort Order", "Title");
+        cout << std::setw(16) << "offset";
+        for (auto field = itemsTable.columns.begin(); field != itemsTable.columns.end(); ++field) {
+            cout << std::setw(16) << field->name;
+        }
+        cout << endl;
+        repeat("===============", 5);
 
         auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
         

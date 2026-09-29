@@ -156,9 +156,12 @@ int main(int argc, char *argv[]) {
         header("Offset", "ID", "Team ID", "Sort Order", "Title");
 
         auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
+        
+        auto firstIndex = itemTeamIdIndex.indexes[*teamIndex];
+        auto lastIndex = sizeof(itemTeamIdIndex.offsets) / sizeof(size_t);
 
         if (teamIndex) {
-            for (size_t offsetIndex = itemTeamIdIndex.indexes[*teamIndex]; offsetIndex < sizeof(itemTeamIdIndex.offsets) / sizeof(size_t) ; ++offsetIndex) {
+            for (size_t offsetIndex = firstIndex; offsetIndex < lastIndex; ++offsetIndex) {
                 auto row = getRow(itemsTable.data, itemTeamIdIndex.offsets[offsetIndex]);
 
                 if (offsetIndex >= itemTeamIdIndex.indexes[*teamIndex + 1]) {

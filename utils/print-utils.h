@@ -17,98 +17,16 @@ void repeat(const T& arg, size_t count) {
     std::cout << endl;
 }
 
-void header(const Table& table, const std::string& title = "") {
+void printHeader(const Table& table, const std::vector<Field>& fields = {}, const std::string& title = "") {
     if (title.size() > 0) {
         cout << title << endl << endl;
     }
 
-    cout << std::setw(16) << "offset";
-
-    for (auto column = table.columns.begin(); column != table.columns.end(); ++column) {
-        cout << std::setw(16) << column->name;
-    }
-
-    cout << endl;
-
-    repeat("===============", table.columns.size() + 1);
-}
-
-size_t recordSize(const Record& record) {
-    size_t fieldOffset = 0;
-
-    for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
-        switch (field->type) {
-            case Primitive::TYPE32:
-            case Primitive::UINT32:
-            case Primitive::UINT64:
-                break;
-            case Primitive::STRING:
-                auto string = getString(record.data, fieldOffset);
-                fieldOffset += (string.length + 8 - 1) / 8 * 8;
-                break;
-        }
-
-        fieldOffset += Primitive::sizes[static_cast<size_t>(field->type)];
-    }
-
-    return fieldOffset;
-}
-
-void printRecord(const Record& record, const std::vector<Field>& fields = {}) {
-    size_t fieldOffset = 0;
-
-    cout << std::left << std::setw(16) << record.data - record.table->data;
-
-    for (auto field = record.table->columns.begin(); field != record.table->columns.end(); ++field) {
-        auto it = std::find_if(fields.begin(), fields.end(), [field](const Field& _field) {
-            return _field.name == field->name;
-        });
-
-        if (fields.size() == 0 || it != fields.end()) {
-            switch (field->type) {
-                case Primitive::TYPE32:
-                    break;
-                case Primitive::UINT32:
-                    cout << std::left << std::setw(16) << getInt<uint32_t>(record.data, fieldOffset);
-                    break;
-                case Primitive::UINT64:
-                    cout << std::left << std::setw(16) << getInt<uint64_t>(record.data, fieldOffset);
-                    break;
-                case Primitive::STRING:
-                    auto string = getString(record.data, fieldOffset);
-                    cout << string.data << " (" << string.length << ")";
-                    break;
-            }
-        }
-
-        if (field->type == Primitive::STRING) {
-            auto string = getString(record.data, fieldOffset);
-
-            fieldOffset += (string.length + 8 - 1) / 8 * 8;
-        }
-
-        fieldOffset += Primitive::sizes[static_cast<size_t>(field->type)];
-    }
-
-    cout << endl;
-}
-
-void dump(const Table *table, const std::vector<Field>& fields = {}) {
-    cout << table->name << endl << endl;
-
-    if (fields.size() > 0) {
-        for (auto field = fields.begin(); field != fields.end(); ++field) {
-            cout << field->name << " ";
-        }
-
-        cout << endl << endl;
-    }
-
     cout << std::left << std::setw(16) << "offset";
 
-    for (auto column = table->columns.begin(); column != table->columns.end(); ++column) {
-        auto it = std::find_if(fields.begin(), fields.end(), [column](const Field& _field) {
-            return _field.name == column->name;
+    for (auto column = table.columns.begin(); column != table.columns.end(); ++column) {
+        auto it = std::find_if(fields.begin(), fields.end(), [column](const Field& _columns) {
+            return _columns.name == column->name;
         });
 
         if (fields.size() == 0 || it != fields.end()) {
@@ -118,7 +36,71 @@ void dump(const Table *table, const std::vector<Field>& fields = {}) {
 
     cout << endl;
 
-    repeat("===============", fields.size() > 0 ? fields.size() + 1 : table->columns.size() + 1);
+    repeat("===============", table.columns.size() + 1);
+}
+
+size_t recordSize(const Record& record) {
+    size_t columnOffset = 0;
+
+    for (auto column = record.table->columns.begin(); column != record.table->columns.end(); ++column) {
+        switch (column->type) {
+            case Primitive::TYPE32:
+            case Primitive::UINT32:
+            case Primitive::UINT64:
+                break;
+            case Primitive::STRING:
+                auto string = getString(record.data, columnOffset);
+                columnOffset += (string.length + 8 - 1) / 8 * 8;
+                break;
+        }
+
+        columnOffset += Primitive::sizes[static_cast<size_t>(column->type)];
+    }
+
+    return columnOffset;
+}
+
+void printRecord(const Record& record, const std::vector<Field>& fields = {}) {
+    size_t columnOffset = 0;
+
+    cout << std::left << std::setw(16) << record.data - record.table->data;
+
+    for (auto column = record.table->columns.begin(); column != record.table->columns.end(); ++column) {
+        auto it = std::find_if(fields.begin(), fields.end(), [column](const Field& _column) {
+            return _column.name == column->name;
+        });
+
+        if (fields.size() == 0 || it != fields.end()) {
+            switch (column->type) {
+                case Primitive::TYPE32:
+                    break;
+                case Primitive::UINT32:
+                    cout << std::left << std::setw(16) << getInt<uint32_t>(record.data, columnOffset);
+                    break;
+                case Primitive::UINT64:
+                    cout << std::left << std::setw(16) << getInt<uint64_t>(record.data, columnOffset);
+                    break;
+                case Primitive::STRING:
+                    auto string = getString(record.data, columnOffset);
+                    cout << string.data << " (" << string.length << ")";
+                    break;
+            }
+        }
+
+        if (column->type == Primitive::STRING) {
+            auto string = getString(record.data, columnOffset);
+
+            columnOffset += (string.length + 8 - 1) / 8 * 8;
+        }
+
+        columnOffset += Primitive::sizes[static_cast<size_t>(column->type)];
+    }
+
+    cout << endl;
+}
+
+void dumpTable(const Table *table, const std::vector<Field>& fields = {}) {
+    printHeader(*table, fields, table->name);
 
     auto first = table->data,
          last = table->data + table->size,

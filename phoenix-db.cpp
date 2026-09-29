@@ -14,12 +14,6 @@
 #include "utils/print-utils.h"
 #include "utils/network-utils.h"
 
-using std::cin;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::string;
-
 using namespace std;
 
 extern Table teamsTable;
@@ -41,12 +35,12 @@ Table itemsTable = {
     "items", 
     {
         { "id", Primitive::UINT64 },
-        { "teamId", Primitive::UINT64 },
-        { "sortOrder", Primitive::UINT32 },
+        { "team_id", Primitive::UINT64 }, // team_id
+        { "sort_order", Primitive::UINT32 },
         { "title", Primitive::STRING },
     },
     new Relationship[] {
-        { "team", &teamsTable, "teamId", Relationship::ONE_TO_ONE },
+        { "team", &teamsTable, "team_id", Relationship::ONE_TO_ONE },
     },
 };
 
@@ -65,15 +59,15 @@ template<int TLength> struct _String {
 template<int TNameLength>
 struct Team {
     const uint64_t id;
-    const uint32_t sortOrder;
+    const uint32_t sort_order;
     const _String<TNameLength> name;
 };
 
 template<int TTitleLength>
 struct Item {
     const uint64_t id;
-    const uint64_t teamId;
-    const uint32_t sortOrder;
+    const uint64_t team_id;
+    const uint32_t sort_order;
     const _String<TTitleLength> title;
 };
 
@@ -138,12 +132,12 @@ int main(int argc, char *argv[]) {
 
     cout << endl;
     
-    dump(&teamsTable);
+    dumpTable(&teamsTable);
     cout << endl << endl;
-    dump(&itemsTable);
+    dumpTable(&itemsTable);
 
     {
-        header(itemsTable, "\n\nITEM WHERE ID = 2001");
+        printHeader(itemsTable, {}, "\n\nITEM WHERE ID = 2001");
 
         auto record = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2001);
 
@@ -153,7 +147,7 @@ int main(int argc, char *argv[]) {
     }
 
     {
-        header(itemsTable, "\n\nITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER");
+        printHeader(itemsTable, {}, "\n\nITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER");
 
         auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
         
@@ -191,7 +185,7 @@ int main(int argc, char *argv[]) {
         auto table = tables.find(expr.table.value);
 
         if (table != tables.end()) {
-            dump(table->second, expr.fields);
+            dumpTable(table->second, expr.fields);
         }
     }
 

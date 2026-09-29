@@ -138,10 +138,12 @@ int main(int argc, char *argv[]) {
 
     cout << endl;
     
-    dump(&teamsTable); cout << endl; dump(&itemsTable);
+    dump(&teamsTable);
+    cout << endl << endl;
+    dump(&itemsTable);
 
     {
-        cout << endl << "ITEM WHERE ID = 2001" << endl << endl;
+        header(itemsTable, "\n\nITEM WHERE ID = 2001");
 
         auto record = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2001);
 
@@ -151,14 +153,7 @@ int main(int argc, char *argv[]) {
     }
 
     {
-        cout << endl << "ITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER" << endl << endl;
-
-        cout << std::setw(16) << "offset";
-        for (auto field = itemsTable.columns.begin(); field != itemsTable.columns.end(); ++field) {
-            cout << std::setw(16) << field->name;
-        }
-        cout << endl;
-        repeat("===============", 5);
+        header(itemsTable, "\n\nITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER");
 
         auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
         

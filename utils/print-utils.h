@@ -2,7 +2,7 @@
 #define PRINT_UTILS
 
 template <typename... Args>
-void format(const Args&... args) {
+void print(const Args&... args) {
     ((std::cout << std::setw(16) << args), ...);
 
     std::cout << endl;
@@ -17,11 +17,20 @@ void repeat(const T& arg, size_t count) {
     std::cout << endl;
 }
 
-template <typename... Args>
-void header(const Args&... args) {
-    format(args...);
+void header(const Table& table, const std::string& title = "") {
+    if (title.size() > 0) {
+        cout << title << endl << endl;
+    }
 
-    repeat("===============", sizeof...(args));
+    cout << std::setw(16) << "offset";
+
+    for (auto column = table.columns.begin(); column != table.columns.end(); ++column) {
+        cout << std::setw(16) << column->name;
+    }
+
+    cout << endl;
+
+    repeat("===============", table.columns.size() + 1);
 }
 
 size_t recordSize(const Record& record) {

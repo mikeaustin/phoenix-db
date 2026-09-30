@@ -98,7 +98,11 @@ T getInt(uint8_t *data, size_t offset) {
       throw new std::invalid_argument("Alignment error");
     }
 
-    return *reinterpret_cast<T *>(data + offset);
+    T value;
+
+    std::memcpy(&value, data + offset, sizeof(T));
+
+    return value;
 }
 
 String getString(uint8_t *data, size_t offset) {

@@ -11,14 +11,13 @@ using std::endl;
 
 namespace Primitive {
     enum Type : uint32_t {
-        TYPE32 = 1,
-        UINT32 = 2,
-        UINT64 = 3,
-        STRING = 4,
+        TYPE32 = 0,
+        UINT32 = 1,
+        UINT64 = 2,
+        STRING = 3,
     };
 
     size_t sizes[] = {
-        0,
         4,
         4,
         8,

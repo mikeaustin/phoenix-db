@@ -30,41 +30,6 @@ struct Column {
     const Primitive::Type type;
 };
 
-struct Table;
-
-struct Relationship {
-    enum Relation : uint32_t {
-        ONE_TO_ONE = 0,
-        ONE_TO_MANY = 1,
-        MANY_TO_MANY = 2,
-    };
-
-    const char *name;
-    const Table *table;
-    const char *foreignKey;
-    const Relation type;
-};
-
-struct Table {
-    const std::string name;
-    const std::vector<Column> columns;
-    const Relationship *relationships;
-    uint8_t *data;
-    size_t size;
-};
-
-//
-
-struct Record {
-    const Table *table;
-    uint8_t *data;
-};
-
-struct String {
-    uint32_t length;
-    const char *data;
-};
-
 //
 
 template <typename T, int S>
@@ -84,6 +49,44 @@ struct NonUniqueIndex {
     T ids[I];
     size_t indexes[I];
     size_t offsets[S];
+};
+
+//
+
+struct Table;
+
+struct Relationship {
+    enum Relation : uint32_t {
+        ONE_TO_ONE = 0,
+        ONE_TO_MANY = 1,
+        MANY_TO_MANY = 2,
+    };
+
+    const char *name;
+    const Table *table;
+    const char *foreignKey;
+    const Relation type;
+};
+
+struct Table {
+    const std::string name;
+    const std::vector<Column> columns;
+    const std::vector<Relationship> relationships;
+    const UniqueIndex<uint64_t, 4> primaryIndex;
+    uint8_t *data;
+    size_t size;
+};
+
+//
+
+struct Record {
+    const Table *table;
+    uint8_t *data;
+};
+
+struct String {
+    uint32_t length;
+    const char *data;
 };
 
 //

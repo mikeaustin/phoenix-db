@@ -36,7 +36,7 @@ void printHeader(const Table& table, const std::vector<Field>& fields = {}, cons
 
     cout << endl;
 
-    repeat("===============", table.columns.size() + 1);
+    repeat("===============", fields.size() > 0 ? fields.size() + 1 : table.columns.size() + 1);
 }
 
 size_t recordSize(const Record& record) {
@@ -99,8 +99,8 @@ void printRecord(const Record& record, const std::vector<Field>& fields = {}) {
     cout << endl;
 }
 
-void dumpTable(const Table *table, const std::vector<Field>& fields = {}) {
-    printHeader(*table, fields, table->name);
+void dumpTable(const Table *table, const std::vector<Field>& fields = {}, const std::string& title = "") {
+    printHeader(*table, fields, title);
 
     auto first = table->data,
          last = table->data + table->size,

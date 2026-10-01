@@ -26,7 +26,7 @@ Table teamsTable = {
         { "padding", Primitive::UINT32 },
         { "name", Primitive::STRING },
     },
-    new Relationship[] {
+    {
         { "items", &itemsTable, "id", Relationship::ONE_TO_MANY },
     },
 };
@@ -35,11 +35,11 @@ Table itemsTable = {
     "items", 
     {
         { "id", Primitive::UINT64 },
-        { "team_id", Primitive::UINT64 }, // team_id
+        { "team_id", Primitive::UINT64 },
         { "sort_order", Primitive::UINT32 },
         { "title", Primitive::STRING },
     },
-    new Relationship[] {
+    {
         { "team", &teamsTable, "team_id", Relationship::ONE_TO_ONE },
     },
 };
@@ -132,9 +132,8 @@ int main(int argc, char *argv[]) {
 
     cout << endl;
     
-    dumpTable(&teamsTable);
-    cout << endl << endl;
-    dumpTable(&itemsTable);
+    dumpTable(&teamsTable, {}, "TEAMS");
+    dumpTable(&itemsTable, {}, "\n\nITEMS");
 
     {
         printHeader(itemsTable, {}, "\n\nITEM WHERE ID = 2001");
@@ -185,6 +184,7 @@ int main(int argc, char *argv[]) {
         auto table = tables.find(expr.table.value);
 
         if (table != tables.end()) {
+            cout << expr.fields.size() << endl;
             dumpTable(table->second, expr.fields);
         }
     }

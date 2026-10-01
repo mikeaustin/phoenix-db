@@ -45,12 +45,12 @@ struct Index2 {
     const size_t offset;
 };
 
-template <typename T, int I, int S>
-struct NonUniqueIndex {
-    const T ids[I];
-    const size_t indexes[I];
-    const size_t offsets[S];
-};
+// template <typename T, int I, int S>
+// struct NonUniqueIndex {
+//     const T ids[I];
+//     const size_t indexes[I];
+//     const size_t offsets[S];
+// };
 
 template <typename T>
 struct NonUniqueIndex2 {

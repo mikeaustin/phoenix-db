@@ -98,16 +98,6 @@ struct Items {
 
 //
 
-Index2<uint64_t> itemIdIndex2[] = {
-    { 2000, 0 }, { 2001, 32 }, { 2002, 72 }, { 2003, 120 },
-};
-
-NonUniqueIndex<uint64_t, 3, 4> itemTeamIdIndex = {
-    { 100, 101 },
-    { 0, 2, 4 },
-    { 32, 0, 120, 72 },
-};
-
 int main(int argc, char *argv[]) {
     teamsTable.data = reinterpret_cast<uint8_t *>(&_teams);
     teamsTable.size = sizeof(_teams);
@@ -117,14 +107,6 @@ int main(int argc, char *argv[]) {
     std::memcpy(itemsTable.data, &_items, sizeof(_items));
 
     //
-
-    auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2) / sizeof(uint64_t), (uint64_t) 2001);
-
-    if (xxx) {
-        cout << xxx->id << endl;
-    }
-
-    cout << endl;
     
     dumpTable(&teamsTable, {}, "TEAMS");
     dumpTable(&itemsTable, {}, "\n\nITEMS");
@@ -146,10 +128,10 @@ int main(int argc, char *argv[]) {
     {
         printHeader(itemsTable, {}, "\n\nITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER");
 
-        auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids) / sizeof(uint64_t), (uint64_t) 100);
+        auto teamIndex = lowerBound(itemsTable.secondaryIndexes[0].ids.data(), itemsTable.secondaryIndexes[0].ids.size(), (uint64_t) 100);
 
         if (teamIndex) {
-            dumpTableByNonUniqueIndex(&itemsTable, itemTeamIdIndex, *teamIndex);
+            dumpTableByNonUniqueIndex(&itemsTable, itemsTable.secondaryIndexes[0], *teamIndex);
         }
     }
 

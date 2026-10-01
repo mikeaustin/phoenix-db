@@ -117,7 +117,7 @@ void dumpTable(const Table *table, const vector<Field>& fields = {}, const strin
     }
 }
 
-void dumpTableByNonUniqueIndex(const Table *itemsTable, NonUniqueIndex<uint64_t, 3, 4> itemTeamIdIndex, uint64_t index) {
+void dumpTableByNonUniqueIndex(const Table *itemsTable, NonUniqueIndex2<uint64_t> itemTeamIdIndex, uint64_t index) {
     auto firstIndex = itemTeamIdIndex.indexes[index];
     auto lastIndex = sizeof(itemTeamIdIndex.offsets) / sizeof(size_t);
 

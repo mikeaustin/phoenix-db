@@ -1,6 +1,7 @@
 #ifndef TABLE_UTILS
 #define TABLE_UTILS
 
+#include <iostream>
 #include <iomanip>
 #include <optional>
 #include <chrono>

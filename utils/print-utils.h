@@ -113,4 +113,19 @@ void dumpTable(const Table *table, const std::vector<Field>& fields = {}, const 
     }
 }
 
+void dumpTableByNonUniqueIndex(const Table *itemsTable, NonUniqueIndex<uint64_t, 3, 4> itemTeamIdIndex, uint64_t index) {
+    auto firstIndex = itemTeamIdIndex.indexes[index];
+    auto lastIndex = sizeof(itemTeamIdIndex.offsets) / sizeof(size_t);
+
+    for (size_t offsetIndex = firstIndex; offsetIndex < lastIndex; ++offsetIndex) {
+        auto row = getRow(itemsTable->data, itemTeamIdIndex.offsets[offsetIndex]);
+
+        if (offsetIndex >= itemTeamIdIndex.indexes[index + 1]) {
+            break;
+        }
+
+        printRecord({ itemsTable, row });
+    };
+}
+
 #endif

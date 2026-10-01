@@ -148,20 +148,9 @@ int main(int argc, char *argv[]) {
         printHeader(itemsTable, {}, "\n\nITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER");
 
         auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids) / sizeof(uint64_t), (uint64_t) 100);
-        
-        auto firstIndex = itemTeamIdIndex.indexes[*teamIndex];
-        auto lastIndex = sizeof(itemTeamIdIndex.offsets) / sizeof(size_t);
 
         if (teamIndex) {
-            for (size_t offsetIndex = firstIndex; offsetIndex < lastIndex; ++offsetIndex) {
-                auto row = getRow(itemsTable.data, itemTeamIdIndex.offsets[offsetIndex]);
-
-                if (offsetIndex >= itemTeamIdIndex.indexes[*teamIndex + 1]) {
-                    break;
-                }
-
-                printRecord({ &itemsTable, row });
-            };
+            dumpTableByNonUniqueIndex(&itemsTable, itemTeamIdIndex, *teamIndex);
         }
     }
 

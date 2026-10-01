@@ -9,7 +9,7 @@
 using std::cout, std::cerr, std::endl;
 using std::string, std::vector;
 
-namespace Primitive {
+namespace Type {
     enum Type : uint32_t {
         TYPE32 = 0,
         UINT32 = 1,
@@ -25,9 +25,12 @@ namespace Primitive {
     };
 };
 
+struct Table;
+
 struct Column {
     const char *name;
-    const Primitive::Type type;
+    const Type::Type type;
+    const Table *table;
 };
 
 //
@@ -40,19 +43,6 @@ struct UniqueIndex {
 };
 
 template <typename T>
-struct Index2 {
-    const T id;
-    const size_t offset;
-};
-
-// template <typename T, int I, int S>
-// struct NonUniqueIndex {
-//     const T ids[I];
-//     const size_t indexes[I];
-//     const size_t offsets[S];
-// };
-
-template <typename T>
 struct NonUniqueIndex2 {
     const string name;
     const vector<T> ids;
@@ -61,8 +51,6 @@ struct NonUniqueIndex2 {
 };
 
 //
-
-struct Table;
 
 struct Relationship {
     enum Relation : uint32_t {

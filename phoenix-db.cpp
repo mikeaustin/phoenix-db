@@ -22,25 +22,25 @@ extern Table itemsTable;
 Table teamsTable = {
     "teams",
     {
-        { "id", Primitive::UINT64 },
-        { "padding", Primitive::UINT32 },
-        { "name", Primitive::STRING },
+        { "id", Type::UINT64 },
+        { "padding", Type::UINT32 },
+        { "name", Type::STRING },
     },
     {
-        { "items", &itemsTable, "id", Relationship::ONE_TO_MANY },
+        { "items", &itemsTable, "id" },
     },
 };
 
 Table itemsTable = {
     "items", 
     {
-        { "id", Primitive::UINT64 },
-        { "team_id", Primitive::UINT64 },
-        { "sort_order", Primitive::UINT32 },
-        { "title", Primitive::STRING },
+        { "id", Type::UINT64 },
+        { "team_id", Type::UINT64, &teamsTable },
+        { "sort_order", Type::UINT32 },
+        { "title", Type::STRING },
     },
     {
-        { "team", &teamsTable, "team_id", Relationship::ONE_TO_ONE },
+        { "team", &teamsTable, "team_id" },
     },
     {
         "pkey",

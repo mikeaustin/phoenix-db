@@ -48,17 +48,17 @@ size_t recordSize(const Record& record) {
 
     for (auto column = record.table->columns.begin(); column != record.table->columns.end(); ++column) {
         switch (column->type) {
-            case Primitive::TYPE32:
-            case Primitive::UINT32:
-            case Primitive::UINT64:
+            case Type::TYPE32:
+            case Type::UINT32:
+            case Type::UINT64:
                 break;
-            case Primitive::STRING:
+            case Type::STRING:
                 auto string = getString(record.data, columnOffset);
                 columnOffset += (string.length + 8 - 1) / 8 * 8;
                 break;
         }
 
-        columnOffset += Primitive::sizes[static_cast<size_t>(column->type)];
+        columnOffset += Type::sizes[static_cast<size_t>(column->type)];
     }
 
     return columnOffset;
@@ -76,28 +76,28 @@ void printRecord(const Record& record, const vector<Field>& fields = {}) {
 
         if (fields.size() == 0 || it != fields.end()) {
             switch (column->type) {
-                case Primitive::TYPE32:
+                case Type::TYPE32:
                     break;
-                case Primitive::UINT32:
+                case Type::UINT32:
                     cout << std::left << std::setw(16) << getInt<uint32_t>(record.data, columnOffset);
                     break;
-                case Primitive::UINT64:
+                case Type::UINT64:
                     cout << std::left << std::setw(16) << getInt<uint64_t>(record.data, columnOffset);
                     break;
-                case Primitive::STRING:
+                case Type::STRING:
                     auto string = getString(record.data, columnOffset);
                     cout << string.data << " (" << string.length << ")";
                     break;
             }
         }
 
-        if (column->type == Primitive::STRING) {
+        if (column->type == Type::STRING) {
             auto string = getString(record.data, columnOffset);
 
             columnOffset += (string.length + 8 - 1) / 8 * 8;
         }
 
-        columnOffset += Primitive::sizes[static_cast<size_t>(column->type)];
+        columnOffset += Type::sizes[static_cast<size_t>(column->type)];
     }
 
     cout << endl;

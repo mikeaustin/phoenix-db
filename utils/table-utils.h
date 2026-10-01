@@ -17,7 +17,7 @@ namespace Primitive {
         STRING = 3,
     };
 
-    size_t sizes[] = {
+    const size_t sizes[] = {
         4,
         4,
         8,
@@ -34,21 +34,30 @@ struct Column {
 
 template <typename T>
 struct UniqueIndex {
-    vector<T> ids;
-    vector<size_t> offsets;
+    const string name;
+    const vector<T> ids;
+    const vector<size_t> offsets;
 };
 
 template <typename T>
 struct Index2 {
-    T id;
-    size_t offset;
+    const T id;
+    const size_t offset;
 };
 
 template <typename T, int I, int S>
 struct NonUniqueIndex {
-    T ids[I];
-    size_t indexes[I];
-    size_t offsets[S];
+    const T ids[I];
+    const size_t indexes[I];
+    const size_t offsets[S];
+};
+
+template <typename T>
+struct NonUniqueIndex2 {
+    const string name;
+    const vector<T> ids;
+    const vector<size_t> indexes;
+    const vector<size_t> offsets;
 };
 
 //
@@ -73,6 +82,7 @@ struct Table {
     const vector<Column> columns;
     const vector<Relationship> relationships;
     const UniqueIndex<uint64_t> primaryIndex;
+    const vector<NonUniqueIndex2<uint64_t>> secondaryIndexes;
     uint8_t *data;
     size_t size;
 };
@@ -85,7 +95,7 @@ struct Record {
 };
 
 struct String {
-    uint32_t length;
+    const uint32_t length;
     const char *data;
 };
 

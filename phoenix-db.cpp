@@ -43,8 +43,17 @@ Table itemsTable = {
         { "team", &teamsTable, "team_id", Relationship::ONE_TO_ONE },
     },
     {
+        "pkey",
         { 2000, 2001, 2002, 2003 },
         { 0, 32, 72, 120 },
+    },
+    {
+        {
+            "teamId", 
+            { 100, 101 },
+            { 0, 2, 4 },
+            { 32, 0, 120, 72 },
+        }
     }
 };
 

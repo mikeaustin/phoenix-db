@@ -28,7 +28,7 @@ namespace Type {
 struct Table;
 
 struct Column {
-    const char *name;
+    const string name;
     const Type::Type type;
     const Table *table;
 };
@@ -59,9 +59,9 @@ struct Relationship {
         MANY_TO_MANY = 2,
     };
 
-    const char *name;
+    const string name;
     const Table *table;
-    const char *foreignKey;
+    const string foreignKey;
     const Relation type;
 };
 

@@ -4,8 +4,8 @@
 #include <optional>
 
 template <typename T>
-std::optional<size_t> lowerBound(const T *array, size_t size, T value) {
-    int left = 0, right = size / sizeof(T) - 1;
+std::optional<size_t> lowerBound(const T *array, size_t count, T value) {
+    int left = 0, right = count - 1;
 
     while (left < right) {
         int mid = left + (right - left) / 2; 

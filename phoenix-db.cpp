@@ -89,11 +89,6 @@ struct Items {
 
 //
 
-// UniqueIndex<uint64_t> itemIdIndex = {
-//     { 2000, 2001, 2002, 2003 },
-//     { 0, 32, 72, 120 },
-// };
-
 Index2<uint64_t> itemIdIndex2[] = {
     { 2000, 0 }, { 2001, 32 }, { 2002, 72 }, { 2003, 120 },
 };
@@ -105,7 +100,7 @@ NonUniqueIndex<uint64_t, 3, 4> itemTeamIdIndex = {
 };
 
 std::optional<Record> findItemWithId(void *items, uint64_t id) {
-    auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size() * sizeof(uint64_t), id);
+    auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), id);
 
     if (index) {
         auto row = getRow(items, itemsTable.primaryIndex.offsets[*index]);
@@ -128,7 +123,7 @@ int main(int argc, char *argv[]) {
 
     //
 
-    auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2), (uint64_t) 2001);
+    auto xxx = lowerBound2(itemIdIndex2, sizeof(itemIdIndex2) / sizeof(uint64_t), (uint64_t) 2001);
 
     if (xxx) {
         cout << xxx->id << endl;
@@ -152,7 +147,7 @@ int main(int argc, char *argv[]) {
     {
         printHeader(itemsTable, {}, "\n\nITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER");
 
-        auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids), (uint64_t) 100);
+        auto teamIndex = lowerBound(itemTeamIdIndex.ids, sizeof(itemTeamIdIndex.ids) / sizeof(uint64_t), (uint64_t) 100);
         
         auto firstIndex = itemTeamIdIndex.indexes[*teamIndex];
         auto lastIndex = sizeof(itemTeamIdIndex.offsets) / sizeof(size_t);

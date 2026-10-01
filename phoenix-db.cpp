@@ -99,20 +99,6 @@ NonUniqueIndex<uint64_t, 3, 4> itemTeamIdIndex = {
     { 32, 0, 120, 72 },
 };
 
-std::optional<Record> findItemWithId(void *items, uint64_t id) {
-    auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), id);
-
-    if (index) {
-        auto row = getRow(items, itemsTable.primaryIndex.offsets[*index]);
-
-        return Record { &itemsTable, row };
-    }
-
-    cerr << "Item not found with id " << id << endl;
-
-    return std::nullopt;
-}
-
 int main(int argc, char *argv[]) {
     teamsTable.data = reinterpret_cast<uint8_t *>(&_teams);
     teamsTable.size = sizeof(_teams);
@@ -135,12 +121,16 @@ int main(int argc, char *argv[]) {
     dumpTable(&itemsTable, {}, "\n\nITEMS");
 
     {
-        printHeader(itemsTable, {}, "\n\nITEM WHERE ID = 2001");
+        printHeader(itemsTable, {}, "\n\nITEM WHERE ID = 2000");
 
-        auto record = findItemWithId(itemsTable.data, 2001);
+        auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), (uint64_t) 2000);
 
-        if (record) {
-            printRecord(*record);
+        if (index) {
+            auto row = getRow(itemsTable.data, itemsTable.primaryIndex.offsets[*index]);
+
+            printRecord({ &itemsTable, row });
+        } else {
+            cerr << "Item not found with id " << 2000 << endl;
         }
     }
 
@@ -172,7 +162,6 @@ int main(int argc, char *argv[]) {
         auto table = tables.find(expr.table.value);
 
         if (table != tables.end()) {
-            cout << expr.fields.size() << endl;
             dumpTable(table->second, expr.fields);
         }
     }

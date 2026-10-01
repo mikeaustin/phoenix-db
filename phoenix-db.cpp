@@ -14,7 +14,7 @@
 #include "utils/print-utils.h"
 #include "utils/network-utils.h"
 
-using namespace std;
+using std::cin, std::cout;
 
 extern Table teamsTable;
 extern Table itemsTable;

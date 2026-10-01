@@ -1,23 +1,27 @@
 #ifndef PRINT_UTILS
 #define PRINT_UTILS
 
+#include <iostream>
+
+using std::cout;
+
 template <typename... Args>
 void print(const Args&... args) {
-    ((std::cout << std::setw(16) << args), ...);
+    ((cout << std::setw(16) << args), ...);
 
-    std::cout << endl;
+    cout << endl;
 }
 
 template <typename T>
 void repeat(const T& arg, size_t count) {
     for (size_t i = 0; i < count; ++i) {
-        std::cout << std::left << std::setw(16) << arg;
+        cout << std::left << std::setw(16) << arg;
     }
 
-    std::cout << endl;
+    cout << endl;
 }
 
-void printHeader(const Table& table, const std::vector<Field>& fields = {}, const std::string& title = "") {
+void printHeader(const Table& table, const vector<Field>& fields = {}, const string& title = "") {
     if (title.size() > 0) {
         cout << title << endl << endl;
     }
@@ -25,7 +29,7 @@ void printHeader(const Table& table, const std::vector<Field>& fields = {}, cons
     cout << std::left << std::setw(16) << "offset";
 
     for (auto column = table.columns.begin(); column != table.columns.end(); ++column) {
-        auto it = std::find_if(fields.begin(), fields.end(), [column](const Field& _columns) {
+        auto it = find_if(fields.begin(), fields.end(), [column](const Field& _columns) {
             return _columns.name == column->name;
         });
 
@@ -60,13 +64,13 @@ size_t recordSize(const Record& record) {
     return columnOffset;
 }
 
-void printRecord(const Record& record, const std::vector<Field>& fields = {}) {
+void printRecord(const Record& record, const vector<Field>& fields = {}) {
     size_t columnOffset = 0;
 
     cout << std::left << std::setw(16) << record.data - record.table->data;
 
     for (auto column = record.table->columns.begin(); column != record.table->columns.end(); ++column) {
-        auto it = std::find_if(fields.begin(), fields.end(), [column](const Field& _column) {
+        auto it = find_if(fields.begin(), fields.end(), [column](const Field& _column) {
             return _column.name == column->name;
         });
 
@@ -99,7 +103,7 @@ void printRecord(const Record& record, const std::vector<Field>& fields = {}) {
     cout << endl;
 }
 
-void dumpTable(const Table *table, const std::vector<Field>& fields = {}, const std::string& title = "") {
+void dumpTable(const Table *table, const vector<Field>& fields = {}, const string& title = "") {
     printHeader(*table, fields, title);
 
     auto first = table->data,

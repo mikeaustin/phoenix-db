@@ -6,9 +6,8 @@
 #include <optional>
 #include <chrono>
 
-using std::cout;
-using std::cerr;
-using std::endl;
+using std::cout, std::cerr, std::endl;
+using std::string, std::vector;
 
 namespace Primitive {
     enum Type : uint32_t {
@@ -35,8 +34,8 @@ struct Column {
 
 template <typename T>
 struct UniqueIndex {
-    std::vector<T> ids;
-    std::vector<size_t> offsets;
+    vector<T> ids;
+    vector<size_t> offsets;
 };
 
 template <typename T>
@@ -70,9 +69,9 @@ struct Relationship {
 };
 
 struct Table {
-    const std::string name;
-    const std::vector<Column> columns;
-    const std::vector<Relationship> relationships;
+    const string name;
+    const vector<Column> columns;
+    const vector<Relationship> relationships;
     const UniqueIndex<uint64_t> primaryIndex;
     uint8_t *data;
     size_t size;

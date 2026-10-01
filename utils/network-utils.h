@@ -4,8 +4,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-using std::cout;
-using std::endl;
+using std::cout, std::endl;
 
 void startServer() {
     const int PORT = 8080;

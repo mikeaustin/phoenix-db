@@ -100,7 +100,7 @@ NonUniqueIndex<uint64_t, 3, 4> itemTeamIdIndex = {
     { 32, 0, 120, 72 },
 };
 
-std::optional<Record> findItemWithId(uint8_t *items, uint64_t id) {
+std::optional<Record> findItemWithId(void *items, uint64_t id) {
     auto index = lowerBound(itemIdIndex.ids, sizeof(itemIdIndex.ids), id);
 
     if (index) {
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
     {
         printHeader(itemsTable, {}, "\n\nITEM WHERE ID = 2001");
 
-        auto record = findItemWithId(reinterpret_cast<uint8_t *>(itemsTable.data), 2001);
+        auto record = findItemWithId(itemsTable.data, 2001);
 
         if (record) {
             printRecord(*record);

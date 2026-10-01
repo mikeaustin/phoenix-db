@@ -93,24 +93,24 @@ uint8_t *getRow(void *data, size_t offset) {
 }
 
 template <typename T>
-T getInt(uint8_t *data, size_t offset) {
+T getInt(void *data, size_t offset) {
     if (reinterpret_cast<size_t>(data) % sizeof(T) != 0 || offset % sizeof(T) != 0) {
       throw new std::invalid_argument("Alignment error");
     }
 
     T value;
 
-    std::memcpy(&value, data + offset, sizeof(T));
+    std::memcpy(&value, reinterpret_cast<uint8_t *>(data) + offset, sizeof(T));
 
     return value;
 }
 
-String getString(uint8_t *data, size_t offset) {
+String getString(void *data, size_t offset) {
     auto length = getInt<uint32_t>(data, offset);
 
     return {
       length,
-      reinterpret_cast<char *>(data + 4 + offset)
+      reinterpret_cast<char *>(reinterpret_cast<uint8_t *>(data) + 4 + offset)
     };
 }
 

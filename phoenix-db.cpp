@@ -85,7 +85,7 @@ struct Items {
 
 //
 
-Index<uint64_t, 4> itemIdIndex = {
+UniqueIndex<uint64_t, 4> itemIdIndex = {
     { 2000, 2001, 2002, 2003 },
     { 0, 32, 72, 120 },
 };
@@ -94,7 +94,7 @@ Index2<uint64_t> itemIdIndex2[] = {
     { 2000, 0 }, { 2001, 32 }, { 2002, 72 }, { 2003, 120 },
 };
 
-IndexIndex<uint64_t, 3, 4> itemTeamIdIndex = {
+NonUniqueIndex<uint64_t, 3, 4> itemTeamIdIndex = {
     { 100, 101 },
     { 0, 2, 4 },
     { 32, 0, 120, 72 },

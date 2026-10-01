@@ -122,11 +122,7 @@ std::optional<std::vector<Field>> fields(string::iterator& input, string::iterat
 
     expect('}', input, end);
 
-    if (fields.size() > 0) {
-        return fields;
-    }
-
-    return std::nullopt;
+    return fields;
 }
 
 Statement expression(string::iterator& input, string::iterator end) {
@@ -135,7 +131,7 @@ Statement expression(string::iterator& input, string::iterator end) {
     auto _fields = fields(input, end);
 
     if (_table) {
-        return Statement { *_keyword, *_table, *_fields };
+        return Statement { *_keyword, *_table, _fields ? *_fields : *new std::vector<Field>() };
     }
 
     return Statement { };

@@ -68,7 +68,7 @@ struct String {
 //
 
 template <typename T, int S>
-struct Index {
+struct UniqueIndex {
     T ids[S];
     size_t offsets[S];
 };
@@ -80,7 +80,7 @@ struct Index2 {
 };
 
 template <typename T, int I, int S>
-struct IndexIndex {
+struct NonUniqueIndex {
     T ids[I];
     size_t indexes[I];
     size_t offsets[S];

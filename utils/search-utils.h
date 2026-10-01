@@ -4,7 +4,7 @@
 #include <optional>
 
 template <typename T>
-std::optional<size_t> lowerBound(T *array, size_t size, T value) {
+std::optional<size_t> lowerBound(const T *array, size_t size, T value) {
     int left = 0, right = size / sizeof(T) - 1;
 
     while (left < right) {

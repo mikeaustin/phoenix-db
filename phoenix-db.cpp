@@ -42,6 +42,10 @@ Table itemsTable = {
     {
         { "team", &teamsTable, "team_id", Relationship::ONE_TO_ONE },
     },
+    {
+        { 2000, 2001, 2002, 2003 },
+        { 0, 32, 72, 120 },
+    }
 };
 
 std::map<string, Table *> tables = {
@@ -85,10 +89,10 @@ struct Items {
 
 //
 
-UniqueIndex<uint64_t, 4> itemIdIndex = {
-    { 2000, 2001, 2002, 2003 },
-    { 0, 32, 72, 120 },
-};
+// UniqueIndex<uint64_t> itemIdIndex = {
+//     { 2000, 2001, 2002, 2003 },
+//     { 0, 32, 72, 120 },
+// };
 
 Index2<uint64_t> itemIdIndex2[] = {
     { 2000, 0 }, { 2001, 32 }, { 2002, 72 }, { 2003, 120 },
@@ -101,10 +105,10 @@ NonUniqueIndex<uint64_t, 3, 4> itemTeamIdIndex = {
 };
 
 std::optional<Record> findItemWithId(void *items, uint64_t id) {
-    auto index = lowerBound(itemIdIndex.ids, sizeof(itemIdIndex.ids), id);
+    auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size() * sizeof(uint64_t), id);
 
     if (index) {
-        auto row = getRow(items, itemIdIndex.offsets[*index]);
+        auto row = getRow(items, itemsTable.primaryIndex.offsets[*index]);
 
         return Record { &itemsTable, row };
     }

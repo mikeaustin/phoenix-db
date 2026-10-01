@@ -32,10 +32,10 @@ struct Column {
 
 //
 
-template <typename T, int S>
+template <typename T>
 struct UniqueIndex {
-    T ids[S];
-    size_t offsets[S];
+    std::vector<T> ids;
+    std::vector<size_t> offsets;
 };
 
 template <typename T>
@@ -72,7 +72,7 @@ struct Table {
     const std::string name;
     const std::vector<Column> columns;
     const std::vector<Relationship> relationships;
-    const UniqueIndex<uint64_t, 4> primaryIndex;
+    const UniqueIndex<uint64_t> primaryIndex;
     uint8_t *data;
     size_t size;
 };

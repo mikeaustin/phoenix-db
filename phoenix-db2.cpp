@@ -81,7 +81,7 @@ struct Item {
 
 //
 
-size_t fieldOffset(const vector<Field>& fields, string name) {
+size_t getFieldOffset(const vector<Field>& fields, const string& name) {
     size_t fieldOffset = 0;
 
     for (auto field : fields) {
@@ -116,10 +116,9 @@ int main() {
 
     for (size_t i = 0; auto id : itemsTable.primaryIndex.ids) {
         auto rowOffset = itemsTable.primaryIndex.offsets[i++];
+        auto fieldOffset = getFieldOffset(itemsTable.columns, "title");
 
-        auto offset = fieldOffset(itemsTable.columns, "title");
-
-        cout << id << "\t" << rowOffset << "\t" << reinterpret_cast<const char *>(&data[rowOffset + offset]) << endl;
+        cout << id << "\t" << reinterpret_cast<const char *>(&data[rowOffset + fieldOffset]) << endl;
     }
 
     return 0;

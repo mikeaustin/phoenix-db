@@ -155,6 +155,8 @@ int main(int argc, char *argv[]) {
 
         if (table != tables.end()) {
             dumpTable(table->second, expr.fields);
+        } else {
+            cout << "Table '" << expr.table.value << "' not found" << endl;
         }
     }
 

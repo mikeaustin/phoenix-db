@@ -17,11 +17,19 @@ enum struct Type : u_int32_t {
     OBJECT = 5 << 8 | 8,
 };
 
-struct Field;
+struct Table;
+
+extern Table nullTable;
 
 struct UniqueIndex {
     const vector<uint64_t> ids;
     const vector<size_t> offsets;
+};
+
+struct Field {
+    const string name;
+    const Type type;
+    const Table& table = nullTable;
 };
 
 struct Table {
@@ -29,12 +37,6 @@ struct Table {
     const vector<Field> columns;
     const UniqueIndex primaryIndex;
 } nullTable;
-
-struct Field {
-    const string name;
-    const Type type;
-    const Table& table = nullTable;
-};
 
 extern const Table teamsTable;
 extern const Table itemsTable;

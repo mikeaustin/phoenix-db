@@ -49,7 +49,7 @@ Table itemsTable = {
     },
     {
         {
-            "teamId", 
+            "team_id", 
             { 100, 101 },
             { 0, 2, 4 },
             { 40, 0, 144, 88 },

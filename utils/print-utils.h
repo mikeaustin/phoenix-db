@@ -103,7 +103,7 @@ void printRecord(const Record& record, const vector<Field>& fields = {}) {
     cout << endl;
 }
 
-void dumpTableByNonUniqueIndex(const Table& table, const NonUniqueIndex<uint64_t>& tableIndex, uint64_t index);
+void dumpTableByNonUniqueIndex(const Table& table, const NonUniqueIndex<uint64_t>& tableIndex, uint64_t index, int indent);
 
 void dumpTable(const Table& table, const vector<Field>& fields = {}, const string& title = "") {
     printHeader(table, fields, title);
@@ -115,16 +115,17 @@ void dumpTable(const Table& table, const vector<Field>& fields = {}, const strin
     while (row < last) {
         printRecord({ &table, row }, fields);
 
-        row += recordSize({ &table, row });
-
         for (auto relationship : table.relationships) {
             if (relationship.key.empty()) {
                 // cout << "    " << relationship.name << " " << relationship.foreignKey << " " << relationship.key << endl;
 
                 auto xxx = relationship.table->secondaryIndexes[0].ids;
 
-                if (auto index = lowerBound(xxx.data(), xxx.size(), (uint64_t) 100)) {
-                    dumpTableByNonUniqueIndex(*relationship.table, relationship.table->secondaryIndexes[0], *index);
+                auto zzz = getColumn({ &table, row }, "id");
+                // cout << zzz << endl;
+
+                if (auto index = lowerBound(xxx.data(), xxx.size(), (uint64_t) zzz)) {
+                    dumpTableByNonUniqueIndex(*relationship.table, relationship.table->secondaryIndexes[0], *index, 2);
                 }
             }
             
@@ -132,10 +133,12 @@ void dumpTable(const Table& table, const vector<Field>& fields = {}, const strin
             //     cout << std::setw(16) << xxx.name << endl;
             // }
         }
+
+        row += recordSize({ &table, row });
     }
 }
 
-void dumpTableByNonUniqueIndex(const Table& table, const NonUniqueIndex<uint64_t>& tableIndex, uint64_t index) {
+void dumpTableByNonUniqueIndex(const Table& table, const NonUniqueIndex<uint64_t>& tableIndex, uint64_t index, int indent = 0) {
     auto firstIndex = tableIndex.indexes[index];
     auto lastIndex = sizeof(tableIndex.offsets) / sizeof(size_t);
 
@@ -146,12 +149,16 @@ void dumpTableByNonUniqueIndex(const Table& table, const NonUniqueIndex<uint64_t
             break;
         }
 
+        if (indent) {
+            cout << "  ";
+        }
+        
         printRecord({ &table, row });
     };
 
-    for (auto relationship : table.relationships) {
-        cout << relationship.name << endl;
-    }
+    // for (auto relationship : table.relationships) {
+    //     cout << relationship.name << endl;
+    // }
 }
 
 #endif

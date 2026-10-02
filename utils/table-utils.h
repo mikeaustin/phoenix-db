@@ -116,8 +116,23 @@ String getString(void *data, size_t offset) {
     };
 }
 
-uint64_t getColumn(const Table& table, void *data, const string name) {
-    return 0;
+uint64_t getColumn(const Record& record, const string name) {
+    size_t columnOffset = 0;
+
+    for (auto column : record.table->columns) {
+        if (column.name == name) {
+            return getInt<uint64_t>(record.data, columnOffset);
+        }
+
+        if (column.type == Type::STRING) {
+            auto string = getString(record.data, columnOffset);
+            columnOffset += (string.length + 8 - 1) / 8 * 8;
+        }
+
+        columnOffset += Type::sizes[column.type];
+    }
+
+    return getInt<uint64_t>(record.data, columnOffset);
 }
 
 //

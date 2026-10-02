@@ -46,8 +46,8 @@ void printHeader(const Table& table, const vector<Field>& fields = {}, const str
 size_t recordSize(const Record& record) {
     size_t columnOffset = 0;
 
-    for (auto column = record.table->columns.begin(); column != record.table->columns.end(); ++column) {
-        switch (column->type) {
+    for (auto column : record.table->columns) {
+        switch (column.type) {
             case Type::TYPE32:
             case Type::UINT32:
             case Type::UINT64:
@@ -58,7 +58,7 @@ size_t recordSize(const Record& record) {
                 break;
         }
 
-        columnOffset += Type::sizes[static_cast<size_t>(column->type)];
+        columnOffset += Type::sizes[static_cast<size_t>(column.type)];
     }
 
     return columnOffset;
@@ -114,6 +114,14 @@ void dumpTable(const Table *table, const vector<Field>& fields = {}, const strin
         printRecord({ table, row }, fields);
 
         row += recordSize({ table, row });
+
+        // for (auto relationship : table->relationships) {
+        //     cout << relationship.name << endl;
+
+        //     for (auto xxx : relationship.table->columns) {
+        //         cout << std::setw(16) << xxx.name << endl;
+        //     }
+        // }
     }
 }
 
@@ -130,6 +138,10 @@ void dumpTableByNonUniqueIndex(const Table *itemsTable, NonUniqueIndex2<uint64_t
 
         printRecord({ itemsTable, row });
     };
+
+    for (auto relationship : itemsTable->relationships) {
+        cout << relationship.name << endl;
+    }
 }
 
 #endif

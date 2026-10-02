@@ -99,7 +99,16 @@ struct Items {
 
 //
 
+bool is_newer(uint8_t i1, uint8_t i2) {
+    return (int8_t) (i1 - i2) > 0;
+}
+
 int main(int argc, char *argv[]) {
+    cout << is_newer(255, 254) << endl;
+    cout << is_newer(126, 255) << endl;
+    cout << is_newer(127, 255) << endl;
+    cout << is_newer(128, 255) << endl;
+
     teamsTable.data = reinterpret_cast<uint8_t *>(&_teams);
     teamsTable.size = sizeof(_teams);
     itemsTable.data = openTable("items.table");

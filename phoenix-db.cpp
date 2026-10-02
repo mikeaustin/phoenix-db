@@ -23,7 +23,6 @@ Table teamsTable = {
     "teams",
     {
         { "id", Type::UINT64 },
-        { "padding", Type::UINT32 },
         { "name", Type::STRING },
     },
     {
@@ -37,6 +36,7 @@ Table itemsTable = {
         { "id", Type::UINT64 },
         { "team_id", Type::UINT64, &teamsTable },
         { "sort_order", Type::UINT32 },
+        { "padding", Type::UINT32 },
         { "title", Type::STRING },
     },
     {
@@ -45,14 +45,14 @@ Table itemsTable = {
     {
         "pkey",
         { 2000, 2001, 2002, 2003 },
-        { 0, 32, 72, 120 },
+        { 0, 40, 88, 144 },
     },
     {
         {
             "teamId", 
             { 100, 101 },
             { 0, 2, 4 },
-            { 32, 0, 120, 72 },
+            { 40, 0, 144, 88 },
         }
     }
 };
@@ -66,13 +66,13 @@ std::map<string, Table *> tables = {
 
 template<int TLength> struct _String {
     const uint32_t length;
+    const uint32_t padding;
     char title[TLength];
 };
 
 template<int TNameLength>
 struct Team {
     const uint64_t id;
-    const uint32_t sort_order;
     const _String<TNameLength> name;
 };
 
@@ -81,19 +81,20 @@ struct Item {
     const uint64_t id;
     const uint64_t team_id;
     const uint32_t sort_order;
+    const uint32_t padding;
     const _String<TTitleLength> title;
 };
 
 struct Teams {
-    Team<10> team1 = { 100, 1, { 10, { 'T', 'e', 'a', 'm', ' ', 'A', 0 } } };
-    Team<10> team2 = { 101, 2, { 10, { 'T', 'e', 'a', 'm', ' ', 'B', 0 } } };
+    Team<10> team1 = { 100, { 10, 0, { 'T', 'e', 'a', 'm', ' ', 'A', 0 } } };
+    Team<10> team2 = { 101, { 10, 0, { 'T', 'e', 'a', 'm', ' ', 'B', 0 } } };
 } _teams;
 
 struct Items {
-    Item<4> item1 = { 2000, 100, 3, { 4, { 'A', 'B', 'C', 0 } } };
-    Item<12> item2 = { 2001, 100, 2, { 12, { 'D', 'E', 'F', 0 } } };
-    Item<20> item3 = { 2002, 101, 1, { 20, { 'G', 'H', 'I', 0 } } };
-    Item<28> item4 = { 2003, 101, 0, { 28, { 'J', 'K', 'L', 0 } } };
+    Item<4> item1 = { 2000, 100, 3, 0, { 4, 0, { 'A', 'B', 'C', 0 } } };
+    Item<12> item2 = { 2001, 100, 2, 0, { 12, 0, { 'D', 'E', 'F', 0 } } };
+    Item<20> item3 = { 2002, 101, 1, 0, { 20, 0, { 'G', 'H', 'I', 0 } } };
+    Item<28> item4 = { 2003, 101, 0, 0, { 28, 0, { 'J', 'K', 'L', 0 } } };
 } _items;
 
 //

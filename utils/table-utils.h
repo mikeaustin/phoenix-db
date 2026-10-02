@@ -21,7 +21,7 @@ namespace Type {
         4,
         4,
         8,
-        4,
+        8,
     };
 };
 
@@ -111,7 +111,7 @@ String getString(void *data, size_t offset) {
 
     return {
       length,
-      reinterpret_cast<char *>(reinterpret_cast<uint8_t *>(data) + 4 + offset)
+      reinterpret_cast<char *>(reinterpret_cast<uint8_t *>(data) + 8 + offset)
     };
 }
 

@@ -9,15 +9,15 @@ using std::string, std::vector, std::map;
 using std::cout, std::endl;
 
 enum struct Type : u_int32_t {
-    TYPE32 = 0 | 4 << 4,
-    UINT32 = 1 | 4 << 4,
-    UINT64 = 2 | 8 << 4,
-    STRING = 3 | 8 << 4,
-    TARRAY = 4 | 0 << 4,
-    OBJECT = 5 | 8 << 4,
+    TYPE32 = 0 << 8 | 4,
+    UINT32 = 1 << 8 | 4,
+    UINT64 = 2 << 8 | 8,
+    STRING = 3 << 8 | 8,
+    TARRAY = 4 << 8 | 0,
+    OBJECT = 5 << 8 | 8,
 };
 
-struct Column;
+struct Field;
 
 struct UniqueIndex {
     const vector<uint64_t> ids;
@@ -26,11 +26,11 @@ struct UniqueIndex {
 
 struct Table {
     const string name;
-    const vector<Column> columns;
+    const vector<Field> columns;
     const UniqueIndex primaryIndex;
 } nullTable;
 
-struct Column {
+struct Field {
     const string name;
     const Type type;
     const Table& table = nullTable;
@@ -52,7 +52,7 @@ const Table itemsTable = {
     "items",
     {
         { "id", Type::UINT64 },
-        { "name", Type::STRING },
+        { "title", Type::STRING },
         { "team", Type::OBJECT, teamsTable },
     },
     {
@@ -81,8 +81,24 @@ struct Item {
 
 //
 
+size_t fieldOffset(const vector<Field>& fields, string name) {
+    size_t fieldOffset = 0;
+
+    for (auto field : fields) {
+        fieldOffset += static_cast<uint32_t>(field.type) & 0xFF;
+
+        if (field.name == name) {
+            return fieldOffset;
+        }
+    }
+
+    return fieldOffset;
+}
+
+//
+
 int main() {
-    cout << sizeof(Item) << endl;
+    // cout << sizeof(Item) << endl;
 
     struct Teams {
         Team team1 = { 100, 0x000031206d616554 };
@@ -96,12 +112,14 @@ int main() {
         Item item4 = { 2003, 101, 0x000034206d657449 };
     } items;
 
+    auto data = reinterpret_cast<uint8_t *>(&items);
+
     for (size_t i = 0; auto id : itemsTable.primaryIndex.ids) {
-        auto offset = itemsTable.primaryIndex.offsets[i++];
+        auto rowOffset = itemsTable.primaryIndex.offsets[i++];
 
-        auto data = reinterpret_cast<uint8_t *>(&items);
+        auto offset = fieldOffset(itemsTable.columns, "title");
 
-        cout << id << "\t" << offset << "\t" << *reinterpret_cast<uint64_t *>(&data[offset]) << endl;
+        cout << id << "\t" << rowOffset << "\t" << reinterpret_cast<const char *>(&data[rowOffset + offset]) << endl;
     }
 
     return 0;

@@ -24,6 +24,7 @@ Table teamsTable = {
     {
         { "id", Type::UINT64 },
         { "name", Type::STRING },
+        // { "items", Type::TARRAY, &itemsTable },
     },
     {
         { "items", &itemsTable, "id" },
@@ -35,6 +36,7 @@ Table itemsTable = {
     {
         { "id", Type::UINT64 },
         { "team_id", Type::UINT64, &teamsTable },
+        // { "team", Type::OBJECT, &teamsTable },
         { "sort_order", Type::UINT32 },
         { "padding", Type::UINT32 },
         { "title", Type::STRING },

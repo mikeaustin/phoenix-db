@@ -15,12 +15,16 @@ namespace Type {
         UINT32 = 1,
         UINT64 = 2,
         STRING = 3,
+        TARRAY = 4,
+        OBJECT = 5,
     };
 
     const size_t sizes[] = {
         4,
         4,
         8,
+        8,
+        0,
         8,
     };
 };

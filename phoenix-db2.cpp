@@ -97,11 +97,11 @@ int main() {
     } items;
 
     for (size_t i = 0; auto id : itemsTable.primaryIndex.ids) {
-        auto xxx = itemsTable.primaryIndex.offsets[i++];
+        auto offset = itemsTable.primaryIndex.offsets[i++];
 
         auto data = reinterpret_cast<uint8_t *>(&items);
 
-        cout << id << "\t" << xxx << "\t" << *reinterpret_cast<uint64_t *>(data + xxx) << endl;
+        cout << id << "\t" << offset << "\t" << *reinterpret_cast<uint64_t *>(&data[offset]) << endl;
     }
 
     return 0;

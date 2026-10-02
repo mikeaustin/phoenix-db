@@ -118,8 +118,8 @@ int main(int argc, char *argv[]) {
 
     //
     
-    dumpTable(&teamsTable, {}, "TEAMS");
-    dumpTable(&itemsTable, {}, "\n\nITEMS");
+    dumpTable(teamsTable, {}, "TEAMS");
+    dumpTable(itemsTable, {}, "\n\nITEMS");
 
     {
         printHeader(itemsTable, {}, "\n\nITEM WHERE ID = 2000");
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
         printHeader(itemsTable, {}, "\n\nITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER");
 
         if (auto teamIndex = lowerBound(itemsTable.secondaryIndexes[0].ids.data(), itemsTable.secondaryIndexes[0].ids.size(), (uint64_t) 100)) {
-            dumpTableByNonUniqueIndex(&itemsTable, itemsTable.secondaryIndexes[0], *teamIndex);
+            dumpTableByNonUniqueIndex(itemsTable, itemsTable.secondaryIndexes[0], *teamIndex);
         }
     }
 
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
         auto table = tables.find(expr.table.value);
 
         if (table != tables.end()) {
-            dumpTable(table->second, expr.fields);
+            dumpTable(*table->second, expr.fields);
         } else {
             cout << "Table '" << expr.table.value << "' not found" << endl;
         }

@@ -103,43 +103,53 @@ void printRecord(const Record& record, const vector<Field>& fields = {}) {
     cout << endl;
 }
 
-void dumpTable(const Table *table, const vector<Field>& fields = {}, const string& title = "") {
-    printHeader(*table, fields, title);
+void dumpTableByNonUniqueIndex(const Table& table, const NonUniqueIndex<uint64_t>& tableIndex, uint64_t index);
 
-    auto first = table->data,
-         last = table->data + table->size,
+void dumpTable(const Table& table, const vector<Field>& fields = {}, const string& title = "") {
+    printHeader(table, fields, title);
+
+    auto first = table.data,
+         last = table.data + table.size,
          row = first;
 
     while (row < last) {
-        printRecord({ table, row }, fields);
+        printRecord({ &table, row }, fields);
 
-        row += recordSize({ table, row });
+        row += recordSize({ &table, row });
 
-        // for (auto relationship : table->relationships) {
-        //     cout << relationship.name << endl;
+        for (auto relationship : table.relationships) {
+            if (relationship.key.empty()) {
+                // cout << "    " << relationship.name << " " << relationship.foreignKey << " " << relationship.key << endl;
 
-        //     for (auto xxx : relationship.table->columns) {
-        //         cout << std::setw(16) << xxx.name << endl;
-        //     }
-        // }
+                auto xxx = relationship.table->secondaryIndexes[0].ids;
+
+                if (auto index = lowerBound(xxx.data(), xxx.size(), (uint64_t) 100)) {
+                    dumpTableByNonUniqueIndex(*relationship.table, relationship.table->secondaryIndexes[0], *index);
+                }
+            }
+            
+            // for (auto xxx : relationship.table->columns) {
+            //     cout << std::setw(16) << xxx.name << endl;
+            // }
+        }
     }
 }
 
-void dumpTableByNonUniqueIndex(const Table *itemsTable, NonUniqueIndex2<uint64_t> itemTeamIdIndex, uint64_t index) {
-    auto firstIndex = itemTeamIdIndex.indexes[index];
-    auto lastIndex = sizeof(itemTeamIdIndex.offsets) / sizeof(size_t);
+void dumpTableByNonUniqueIndex(const Table& table, const NonUniqueIndex<uint64_t>& tableIndex, uint64_t index) {
+    auto firstIndex = tableIndex.indexes[index];
+    auto lastIndex = sizeof(tableIndex.offsets) / sizeof(size_t);
 
     for (size_t offsetIndex = firstIndex; offsetIndex < lastIndex; ++offsetIndex) {
-        auto row = getRow(itemsTable->data, itemTeamIdIndex.offsets[offsetIndex]);
+        auto row = getRow(table.data, tableIndex.offsets[offsetIndex]);
 
-        if (offsetIndex >= itemTeamIdIndex.indexes[index + 1]) {
+        if (offsetIndex >= tableIndex.indexes[index + 1]) {
             break;
         }
 
-        printRecord({ itemsTable, row });
+        printRecord({ &table, row });
     };
 
-    for (auto relationship : itemsTable->relationships) {
+    for (auto relationship : table.relationships) {
         cout << relationship.name << endl;
     }
 }

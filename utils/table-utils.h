@@ -27,7 +27,7 @@ namespace Type {
 
 struct Table;
 
-struct Column {
+struct ColumnDef {
     const string name;
     const Type::Type type;
     const Table *table;
@@ -43,7 +43,7 @@ struct UniqueIndex {
 };
 
 template <typename T>
-struct NonUniqueIndex2 {
+struct NonUniqueIndex {
     const string name;
     const vector<T> ids;
     const vector<size_t> indexes;
@@ -68,10 +68,10 @@ struct Relationship {
 
 struct Table {
     const string name;
-    const vector<Column> columns;
+    const vector<ColumnDef> columns;
     const vector<Relationship> relationships;
     const UniqueIndex<uint64_t> primaryIndex;
-    const vector<NonUniqueIndex2<uint64_t>> secondaryIndexes;
+    const vector<NonUniqueIndex<uint64_t>> secondaryIndexes;
     uint8_t *data;
     size_t size;
 };
@@ -115,6 +115,12 @@ String getString(void *data, size_t offset) {
       reinterpret_cast<char *>(reinterpret_cast<uint8_t *>(data) + 8 + offset)
     };
 }
+
+uint64_t getColumn(const Table& table, void *data, const string name) {
+    return 0;
+}
+
+//
 
 struct Object {
 

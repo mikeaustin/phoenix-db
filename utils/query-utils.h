@@ -5,6 +5,23 @@
 
 using std::string;
 
+struct Value {
+
+};
+
+struct KopiString {
+    string value;
+};
+
+struct ASTNode {
+    enum Type {
+        Identifier = 1,
+    };
+
+    // virtual Value evaluate() = 0;
+    int type;
+};
+
 struct Keyword {
     enum Value : int8_t {
         SELECT = 'S',
@@ -13,7 +30,15 @@ struct Keyword {
     Value value;
 };
 
-struct Identifier {
+struct Identifier : public ASTNode {
+    Identifier(string value) : ASTNode(ASTNode::Identifier) {
+        this->value = value;
+    }
+
+    Value evaluate() {
+        return Value { };
+    }
+
     string value;
 };
 
@@ -134,7 +159,17 @@ Statement expression(string::iterator& input, string::iterator end) {
         return Statement { *_keyword, *_table, _fields ? *_fields : *new std::vector<Field>() };
     }
 
-    return Statement { };
+    throw "Error";
+}
+
+void evaluate(const ASTNode& node) {
+    switch (node.type) {
+        case ASTNode::Identifier:
+            const Identifier& _node = static_cast<const Identifier&>(node);
+
+            cout << _node.value << endl;
+        break;
+    }
 }
 
 #endif

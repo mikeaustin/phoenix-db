@@ -40,7 +40,7 @@ Table itemsTable = {
         { "title", Type::STRING },
     },
     {
-        { "team", &teamsTable, "team_id" },
+        { "team", &teamsTable, "id", "team_id" },
     },
     {
         "pkey",
@@ -124,9 +124,7 @@ int main(int argc, char *argv[]) {
     {
         printHeader(itemsTable, {}, "\n\nITEM WHERE ID = 2000");
 
-        auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), (uint64_t) 2000);
-
-        if (index) {
+        if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), (uint64_t) 2000)) {
             auto row = getRow(itemsTable.data, itemsTable.primaryIndex.offsets[*index]);
 
             printRecord({ &itemsTable, row });
@@ -138,9 +136,7 @@ int main(int argc, char *argv[]) {
     {
         printHeader(itemsTable, {}, "\n\nITEMS WHERE TEAM_ID = 100 SORTED BY SORT_ORDER");
 
-        auto teamIndex = lowerBound(itemsTable.secondaryIndexes[0].ids.data(), itemsTable.secondaryIndexes[0].ids.size(), (uint64_t) 100);
-
-        if (teamIndex) {
+        if (auto teamIndex = lowerBound(itemsTable.secondaryIndexes[0].ids.data(), itemsTable.secondaryIndexes[0].ids.size(), (uint64_t) 100)) {
             dumpTableByNonUniqueIndex(&itemsTable, itemsTable.secondaryIndexes[0], *teamIndex);
         }
     }

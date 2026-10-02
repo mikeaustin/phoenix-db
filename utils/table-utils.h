@@ -62,6 +62,7 @@ struct Relationship {
     const string name;
     const Table *table;
     const string foreignKey;
+    const string key;
     const Relation type;
 };
 
@@ -113,6 +114,28 @@ String getString(void *data, size_t offset) {
       length,
       reinterpret_cast<char *>(reinterpret_cast<uint8_t *>(data) + 8 + offset)
     };
+}
+
+struct Object {
+
+};
+
+struct Array {
+    vector<const Object *> elements;
+};
+
+struct Column2 {
+    string name;
+    Type::Type type;
+
+};
+
+struct Record2 {
+    vector<const Record2 *> records; 
+};
+
+const Object *serialize() {
+    return new Object;
 }
 
 #endif

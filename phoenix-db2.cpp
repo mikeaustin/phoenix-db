@@ -57,11 +57,12 @@ Table itemsTable = {
     {
         { "id", Type::UINT64 },
         { "team_id", Type::OBJECT, teamsTable },
+        { "sort_order", Type::UINT64 },
         { "title", Type::STRING },
     },
     {
         { 2000, 2001, 2002, 2003 },
-        { 0, 24, 48, 72 },
+        { 0, 32, 64, 96 },
     },
 };
 
@@ -80,6 +81,7 @@ struct Team {
 struct Item {
     const uint64_t id;
     const uint64_t team_id;
+    const uint64_t sort_order;
     const uint64_t title;
 };
 
@@ -140,7 +142,7 @@ std::optional<size_t> lowerBound(const T *array, size_t count, T value) {
 //
 
 int main() {
-    // cout << sizeof(Item) << endl;
+    cout << "sizeof(Item) = " << sizeof(Item) << endl;
 
     struct Teams {
         Team team1 = { 100, 0x000031206d616554 };
@@ -148,10 +150,10 @@ int main() {
     } teams;
     
     struct Items {
-        Item item1 = { 2000, 100, 0x000031206d657449 };
-        Item item2 = { 2001, 100, 0x000032206d657449 };
-        Item item3 = { 2002, 101, 0x000033206d657449 };
-        Item item4 = { 2003, 101, 0x000034206d657449 };
+        Item item1 = { 2000, 100, 1, 0x000031206d657449 };
+        Item item2 = { 2001, 100, 2, 0x000032206d657449 };
+        Item item3 = { 2002, 101, 3, 0x000033206d657449 };
+        Item item4 = { 2003, 101, 4, 0x000034206d657449 };
     } items;
 
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);

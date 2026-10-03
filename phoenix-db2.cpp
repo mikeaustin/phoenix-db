@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cstdint>
+#include <optional>
 #include <vector>
 #include <map>
 
@@ -115,6 +116,29 @@ const char *getString(const Record& record, const string& name) {
 
 //
 
+template <typename T>
+std::optional<size_t> lowerBound(const T *array, size_t count, T value) {
+    int left = 0, right = count - 1;
+
+    while (left < right) {
+        int mid = left + (right - left) / 2; 
+
+        if (array[mid] >= value) {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    if (array[left] == value) {
+      return left;
+    }
+
+    return std::nullopt;
+}
+
+//
+
 int main() {
     // cout << sizeof(Item) << endl;
 
@@ -133,14 +157,20 @@ int main() {
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
     itemsTable.data = reinterpret_cast<uint8_t *>(&items);
 
-    // auto data = reinterpret_cast<uint8_t *>(&items);
+    //
 
-    for (size_t i = 0; auto id : itemsTable.primaryIndex.ids) {
-        auto rowOffset = itemsTable.primaryIndex.offsets[i++];
+    for (size_t i = 0; i < itemsTable.primaryIndex.ids.size(); ++i) {
+        auto rowOffset = itemsTable.primaryIndex.offsets[i];
 
         auto record = getRecord(itemsTable, rowOffset);
 
-        cout << id << "\t" << getString(record, "title") << endl;
+        cout << i << "\t" << getString(record, "title") << endl;
+    }
+
+    if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), 2001ULL)) {
+        auto record = getRecord(itemsTable, itemsTable.primaryIndex.offsets[*index]);
+
+        cout << getString(record, "title") << endl;
     }
 
     return 0;

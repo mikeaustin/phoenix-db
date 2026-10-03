@@ -36,12 +36,13 @@ struct Table {
     const string name;
     const vector<Field> columns;
     const UniqueIndex primaryIndex;
+    uint8_t *data;
 } nullTable;
 
-extern const Table teamsTable;
-extern const Table itemsTable;
+extern Table teamsTable;
+extern Table itemsTable;
 
-const Table teamsTable = {
+Table teamsTable = {
     "teams",
     {
         { "id", Type::UINT64 },
@@ -50,7 +51,7 @@ const Table teamsTable = {
     },
 };
 
-const Table itemsTable = {
+Table itemsTable = {
     "items",
     {
         { "id", Type::UINT64 },
@@ -97,6 +98,21 @@ size_t getFieldOffset(const vector<Field>& fields, const string& name) {
     return fieldOffset;
 }
 
+struct Record {
+    const Table& table;
+    const uint8_t *row;
+};
+
+const Record getRecord(const Table& table, size_t offset) {
+    return { table, &table.data[offset] };
+}
+
+const char *getString(const Record& record, const string& name) {
+    auto fieldOffset = getFieldOffset(record.table.columns, name);
+
+    return reinterpret_cast<const char *>(&record.row[fieldOffset]);
+}
+
 //
 
 int main() {
@@ -114,13 +130,17 @@ int main() {
         Item item4 = { 2003, 101, 0x000034206d657449 };
     } items;
 
-    auto data = reinterpret_cast<uint8_t *>(&items);
+    teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
+    itemsTable.data = reinterpret_cast<uint8_t *>(&items);
+
+    // auto data = reinterpret_cast<uint8_t *>(&items);
 
     for (size_t i = 0; auto id : itemsTable.primaryIndex.ids) {
         auto rowOffset = itemsTable.primaryIndex.offsets[i++];
-        auto fieldOffset = getFieldOffset(itemsTable.columns, "title");
 
-        cout << id << "\t" << reinterpret_cast<const char *>(&data[rowOffset + fieldOffset]) << endl;
+        auto record = getRecord(itemsTable, rowOffset);
+
+        cout << id << "\t" << getString(record, "title") << endl;
     }
 
     return 0;

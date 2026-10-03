@@ -56,8 +56,8 @@ Table itemsTable = {
     "items",
     {
         { "id", Type::UINT64 },
+        { "team_id", Type::OBJECT, teamsTable },
         { "title", Type::STRING },
-        { "team", Type::OBJECT, teamsTable },
     },
     {
         { 2000, 2001, 2002, 2003 },
@@ -89,11 +89,11 @@ size_t getFieldOffset(const vector<Field>& fields, const string& name) {
     size_t fieldOffset = 0;
 
     for (auto field : fields) {
-        fieldOffset += static_cast<uint32_t>(field.type) & 0xFF;
-
         if (field.name == name) {
             return fieldOffset;
         }
+
+        fieldOffset += static_cast<uint32_t>(field.type) & 0xFF;
     }
 
     return fieldOffset;

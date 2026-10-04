@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdint>
 #include <optional>
+#include <chrono>
 #include <vector>
 #include <map>
 
@@ -57,7 +58,7 @@ Table itemsTable = {
     {
         { "id", Type::UINT64 },
         { "team_id", Type::OBJECT, teamsTable },
-        { "sort_order", Type::UINT64 },
+        { "created_at", Type::UINT64 },
         { "title", Type::STRING },
     },
     {
@@ -81,7 +82,7 @@ struct Team {
 struct Item {
     const uint64_t id;
     const uint64_t team_id;
-    const uint64_t sort_order;
+    const uint64_t created_at;
     const uint64_t title;
 };
 
@@ -108,6 +109,12 @@ struct Record {
 
 const Record getRecord(const Table& table, size_t offset) {
     return { table, &table.data[offset] };
+}
+
+const int64_t getInt64(const Record& record, const string& name) {
+    auto fieldOffset = getFieldOffset(record.table.columns, name);
+
+    return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
 }
 
 const char *getString(const Record& record, const string& name) {
@@ -150,10 +157,10 @@ int main() {
     } teams;
     
     struct Items {
-        Item item1 = { 2000, 100, 1, 0x000031206d657449 };
-        Item item2 = { 2001, 100, 2, 0x000032206d657449 };
-        Item item3 = { 2002, 101, 3, 0x000033206d657449 };
-        Item item4 = { 2003, 101, 4, 0x000034206d657449 };
+        Item item1 = { 2000, 100, 946728000, 0x000031206d657449 };
+        Item item2 = { 2001, 100, 946814400, 0x000032206d657449 };
+        Item item3 = { 2002, 101, 946900800, 0x000033206d657449 };
+        Item item4 = { 2003, 101, 946987200, 0x000034206d657449 };
     } items;
 
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
@@ -166,7 +173,11 @@ int main() {
 
         auto record = getRecord(itemsTable, rowOffset);
 
-        cout << i << "\t" << getString(record, "title") << endl;
+        auto createdAt = getInt64(record, "created_at");
+
+        auto tp = std::chrono::system_clock::from_time_t(createdAt);
+
+        cout << i << "\t" << getString(record, "title") << "\t\t" << std::format("{:%Y-%m-%d %H:%M:%S}", tp) << endl;
     }
 
     if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), 2001ULL)) {

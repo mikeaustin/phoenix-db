@@ -12,22 +12,24 @@ using std::string, std::vector, std::map;
 using std::cout, std::endl;
 
 enum struct Type : u_int32_t {
-    TYPE32 = 0 << 8 | 4,
-    UINT32 = 1 << 8 | 4,
-    UINT64 = 2 << 8 | 8,
-    STRING = 3 << 8 | 8,
-    TARRAY = 4 << 8 | 0,
-    OBJECT = 5 << 8 | 8,
-    DATETS = 6 << 8 | 8,
+    TYPE32 = 0,
+    UINT32 = 1,
+    UINT64 = 2,
+    STRING = 3,
+    TARRAY = 4,
+    OBJECT = 5,
+    DATETS = 6,
 };
 
-// struct Value {
-//     Type type;
-//     union {
-//         uint32_t uint32;
-//         uint64_t uint64;
-//     };
-// };
+size_t typeSize[] = {
+    4,
+    4,
+    8,
+    8,
+    0,
+    8,
+    8,
+};
 
 using Value = std::variant<
     uint32_t,
@@ -116,7 +118,7 @@ size_t getFieldOffset(const vector<Field>& fields, const string& name) {
             return fieldOffset;
         }
 
-        fieldOffset += static_cast<uint32_t>(field.type) & 0xFF;
+        fieldOffset += typeSize[static_cast<uint32_t>(field.type)];
     }
 
     return fieldOffset;
@@ -152,7 +154,7 @@ const Value getValue(const Record& record, const string& name) {
 
     auto field = record.table.columns[fieldOffset];
 
-    switch (static_cast<uint32_t>(field.type) & 0xFF00) {
+    switch (static_cast<uint32_t>(field.type)) {
         case 1: return Value { std::in_place_index<1>, getInt32(record, fieldOffset) };
         case 6: return Value { std::in_place_index<6>, *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]) };
     }

@@ -12,7 +12,6 @@ using std::string, std::vector, std::map;
 using std::cout, std::endl;
 
 enum Type : u_int32_t {
-    TYPE32 = 0,
     UINT32 = 1,
     UINT64 = 2,
     STRING = 3,
@@ -118,7 +117,7 @@ size_t getFieldOffset(const vector<Field>& fields, const string& name) {
             return fieldOffset;
         }
 
-        fieldOffset += typeSize[static_cast<uint32_t>(field.type)];
+        fieldOffset += typeSize[field.type];
     }
 
     return fieldOffset;
@@ -167,9 +166,12 @@ const Value getValue(const Record& record, const string& name) {
 
     auto field = record.table.columns.at(fieldIndex);
 
-    switch (static_cast<uint32_t>(field.type)) {
+    switch (field.type) {
+        case Type::UINT32: return Value { std::in_place_index<Type::UINT32>, getInt32(record, fieldOffset) };
         case Type::UINT64: return Value { std::in_place_index<Type::UINT64>, getInt64(record, fieldOffset) };
         case Type::STRING: return Value { std::in_place_index<Type::STRING>, getInt64(record, fieldOffset) };
+        case Type::TARRAY: return Value { std::in_place_index<Type::TARRAY>, nullptr };
+        case Type::OBJECT: return Value { std::in_place_index<Type::OBJECT>, getInt64(record, fieldOffset) };
         case Type::DATETS: return Value { std::in_place_index<Type::DATETS>, getInt64(record, fieldOffset) };
     }
 
@@ -177,17 +179,15 @@ const Value getValue(const Record& record, const string& name) {
 }
 
 std::ostream& operator <<(std::ostream& stream, const Value& value) {
-    switch (static_cast<Type>(value.index())) {
-        case Type::TYPE32:
-            break;
+    switch (value.index()) {
         case Type::UINT32:
-            stream << std::get<static_cast<uint32_t>(Type::UINT32)>(value);
+            stream << std::get<Type::UINT32>(value);
             break;
         case Type::UINT64:
-            stream << std::get<static_cast<uint32_t>(Type::UINT64)>(value);
+            stream << std::get<Type::UINT64>(value);
             break;
         case Type::STRING: {
-                auto str = std::get<static_cast<uint32_t>(Type::STRING)>(value);
+                auto str = std::get<Type::STRING>(value);
 
                 stream << reinterpret_cast<const char *>(&str);
             }
@@ -197,7 +197,7 @@ std::ostream& operator <<(std::ostream& stream, const Value& value) {
         case Type::OBJECT:
             break;
         case Type::DATETS: {
-                auto tp = std::chrono::system_clock::from_time_t(std::get<static_cast<uint32_t>(Type::DATETS)>(value));
+                auto tp = std::chrono::system_clock::from_time_t(std::get<Type::DATETS>(value));
 
                 stream << std::format("{:%Y-%m-%d %H:%M}", tp);
             }

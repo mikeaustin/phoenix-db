@@ -1,4 +1,4 @@
-// g++ -std=c++20 -O3 -flto phoenix-db.cpp
+// g++ -std=c++20 -O3 -flto phoenix-db2.cpp
 
 #include <iostream>
 #include <variant>
@@ -44,9 +44,12 @@ struct Table;
 
 extern Table nullTable;
 
+enum struct Id : uint64_t { };
+enum struct Offset : size_t { };
+
 struct UniqueIndex {
-    const vector<uint64_t> ids;
-    const vector<size_t> offsets;
+    const vector<Id> ids;
+    const vector<Offset> offsets;
 };
 
 struct Field {
@@ -83,8 +86,8 @@ Table itemsTable = {
         { "title", Type::STRING },
     },
     {
-        { 2000, 2001, 2002, 2003 },
-        { 0, 32, 64, 96 },
+        { Id { 2000 }, Id { 2001 }, Id { 2002 }, Id { 2003 } },
+        { Offset { 0 }, Offset { 32 }, Offset { 64 }, Offset { 96 } },
     },
 };
 
@@ -142,8 +145,8 @@ struct Record {
     const uint8_t *row;
 };
 
-const Record getRecord(const Table& table, size_t offset) {
-    return { table, &table.data[offset] };
+const Record getRecord(const Table& table, Offset offset) {
+    return { table, &table.data[static_cast<size_t>(offset)] };
 }
 
 const int32_t getInt32(const Record& record, const size_t fieldOffset) {
@@ -263,7 +266,7 @@ int main() {
         cout << i << "\t" << title << "\t\t" << createdAt << endl;
     }
 
-    if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), 2001ULL)) {
+    if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), Id { 2001 })) {
         auto record = getRecord(itemsTable, itemsTable.primaryIndex.offsets[*index]);
 
         cout << getString(record, "title") << endl;

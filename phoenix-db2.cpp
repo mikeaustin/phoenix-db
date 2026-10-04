@@ -131,6 +131,10 @@ const Record getRecord(const Table& table, size_t offset) {
     return { table, &table.data[offset] };
 }
 
+const int64_t getInt32(const Record& record, const size_t fieldOffset) {
+    return *reinterpret_cast<const uint32_t *>(&record.row[fieldOffset]);
+}
+
 const int64_t getInt64(const Record& record, const string& name) {
     auto fieldOffset = getFieldOffset(record.table.columns, name);
 
@@ -141,6 +145,19 @@ const char *getString(const Record& record, const string& name) {
     auto fieldOffset = getFieldOffset(record.table.columns, name);
 
     return reinterpret_cast<const char *>(&record.row[fieldOffset]);
+}
+
+const Value getValue(const Record& record, const string& name) {
+    auto fieldOffset = getFieldOffset(record.table.columns, name);
+
+    auto field = record.table.columns[fieldOffset];
+
+    switch (static_cast<uint32_t>(field.type) & 0xFF00) {
+        case 1: return Value { std::in_place_index<1>, getInt32(record, fieldOffset) };
+        case 6: return Value { std::in_place_index<6>, *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]) };
+    }
+
+    return Value { };
 }
 
 std::ostream& operator <<(std::ostream& stream, const Value& value) {

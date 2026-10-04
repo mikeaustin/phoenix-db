@@ -1,6 +1,7 @@
 // g++ -std=c++20 -O3 -flto phoenix-db.cpp
 
 #include <iostream>
+#include <variant>
 #include <cstdint>
 #include <optional>
 #include <chrono>
@@ -17,7 +18,26 @@ enum struct Type : u_int32_t {
     STRING = 3 << 8 | 8,
     TARRAY = 4 << 8 | 0,
     OBJECT = 5 << 8 | 8,
+    DATETS = 6 << 8 | 8,
 };
+
+// struct Value {
+//     Type type;
+//     union {
+//         uint32_t uint32;
+//         uint64_t uint64;
+//     };
+// };
+
+using Value = std::variant<
+    uint32_t,
+    uint32_t,
+    uint64_t,
+    uint64_t,
+    uint64_t,
+    uint64_t,
+    uint64_t
+>;
 
 struct Table;
 
@@ -123,6 +143,24 @@ const char *getString(const Record& record, const string& name) {
     return reinterpret_cast<const char *>(&record.row[fieldOffset]);
 }
 
+std::ostream& operator <<(std::ostream& stream, const Value& value) {
+    switch (value.index()) {
+        case 1:
+            stream << std::get<1>(value);
+        break;
+        case 2:
+            stream << std::get<2>(value);
+        break;
+        case 6:
+            auto tp = std::chrono::system_clock::from_time_t(std::get<6>(value));
+
+            stream << std::format("{:%Y-%m-%d %H:%M}", tp);
+        break;
+    }
+
+    return stream;
+}
+
 //
 
 template <typename T>
@@ -157,14 +195,16 @@ int main() {
     } teams;
     
     struct Items {
-        Item item1 = { 2000, 100, 946728000, 0x000031206d657449 };
-        Item item2 = { 2001, 100, 946814400, 0x000032206d657449 };
-        Item item3 = { 2002, 101, 946900800, 0x000033206d657449 };
-        Item item4 = { 2003, 101, 946987200, 0x000034206d657449 };
+        Item item1 = { 2000, 100, 946684860, 0x000031206d657449 };
+        Item item2 = { 2001, 100, 946684920, 0x000032206d657449 };
+        Item item3 = { 2002, 101, 946684980, 0x000033206d657449 };
+        Item item4 = { 2003, 101, 946685040, 0x000034206d657449 };
     } items;
 
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
     itemsTable.data = reinterpret_cast<uint8_t *>(&items);
+
+    cout << Value { std::in_place_index<6>, 946684860 } << endl;
 
     //
 
@@ -177,7 +217,7 @@ int main() {
 
         auto tp = std::chrono::system_clock::from_time_t(createdAt);
 
-        cout << i << "\t" << getString(record, "title") << "\t\t" << std::format("{:%Y-%m-%d %H:%M:%S}", tp) << endl;
+        cout << i << "\t" << getString(record, "title") << "\t\t" << std::format("{:%Y-%m-%d %H:%M}", tp) << endl;
     }
 
     if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), 2001ULL)) {

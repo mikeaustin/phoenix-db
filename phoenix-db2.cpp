@@ -80,7 +80,7 @@ Table itemsTable = {
     {
         { "id", Type::UINT64 },
         { "team_id", Type::OBJECT, teamsTable },
-        { "created_at", Type::UINT64 },
+        { "created_at", Type::DATETS },
         { "title", Type::STRING },
     },
     {
@@ -124,6 +124,20 @@ size_t getFieldOffset(const vector<Field>& fields, const string& name) {
     return fieldOffset;
 }
 
+size_t getFieldIndex(const vector<Field>& fields, const string& name) {
+    size_t fieldIndex = 0;
+
+    for (auto field : fields) {
+        if (field.name == name) {
+            return fieldIndex;
+        }
+
+        fieldIndex += 1;
+    }
+
+    return fieldIndex;
+}
+
 struct Record {
     const Table& table;
     const uint8_t *row;
@@ -148,12 +162,13 @@ const char *getString(const Record& record, const string& name) {
 }
 
 const Value getValue(const Record& record, const string& name) {
+    auto fieldIndex = getFieldIndex(record.table.columns, name);
     auto fieldOffset = getFieldOffset(record.table.columns, name);
 
-    auto field = record.table.columns[fieldOffset];
+    auto field = record.table.columns.at(fieldIndex);
 
     switch (static_cast<uint32_t>(field.type)) {
-        case 1: return Value { std::in_place_index<1>, getInt32(record, fieldOffset) };
+        case 2: return Value { std::in_place_index<2>, getInt32(record, fieldOffset) };
         case 6: return Value { std::in_place_index<6>, getInt64(record, fieldOffset) };
     }
 
@@ -230,8 +245,6 @@ int main() {
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
     itemsTable.data = reinterpret_cast<uint8_t *>(&items);
 
-    cout << Value { std::in_place_index<6>, 946684860 } << endl;
-
     //
 
     for (size_t i = 0; i < itemsTable.primaryIndex.ids.size(); ++i) {
@@ -239,11 +252,9 @@ int main() {
 
         auto record = getRecord(itemsTable, rowOffset);
 
-        auto createdAt = getInt64(record, getFieldOffset(record.table.columns, "created_at"));
+        auto createdAt = getValue(record, "created_at");
 
-        auto tp = std::chrono::system_clock::from_time_t(createdAt);
-
-        cout << i << "\t" << getString(record, "title") << "\t\t" << std::format("{:%Y-%m-%d %H:%M}", tp) << endl;
+        cout << i << "\t" << getString(record, "title") << "\t\t" << createdAt << endl;
     }
 
     if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), 2001ULL)) {

@@ -36,7 +36,7 @@ using Value = std::variant<
     uint32_t,
     uint64_t,
     uint64_t,
-    uint64_t,
+    void *,
     uint64_t,
     uint64_t
 >;
@@ -133,13 +133,11 @@ const Record getRecord(const Table& table, size_t offset) {
     return { table, &table.data[offset] };
 }
 
-const int64_t getInt32(const Record& record, const size_t fieldOffset) {
+const int32_t getInt32(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint32_t *>(&record.row[fieldOffset]);
 }
 
-const int64_t getInt64(const Record& record, const string& name) {
-    auto fieldOffset = getFieldOffset(record.table.columns, name);
-
+const int64_t getInt64(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
 }
 
@@ -156,22 +154,31 @@ const Value getValue(const Record& record, const string& name) {
 
     switch (static_cast<uint32_t>(field.type)) {
         case 1: return Value { std::in_place_index<1>, getInt32(record, fieldOffset) };
-        case 6: return Value { std::in_place_index<6>, *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]) };
+        case 6: return Value { std::in_place_index<6>, getInt64(record, fieldOffset) };
     }
 
     return Value { };
 }
 
 std::ostream& operator <<(std::ostream& stream, const Value& value) {
-    switch (value.index()) {
-        case 1:
-            stream << std::get<1>(value);
+    switch (static_cast<Type>(value.index())) {
+        case Type::TYPE32:
+            break;
+        case Type::UINT32:
+            stream << std::get<static_cast<uint32_t>(Type::UINT32)>(value);
         break;
-        case 2:
-            stream << std::get<2>(value);
+        case Type::UINT64:
+            stream << std::get<static_cast<uint32_t>(Type::UINT64)>(value);
         break;
-        case 6:
-            auto tp = std::chrono::system_clock::from_time_t(std::get<6>(value));
+        case Type::STRING:
+            stream << std::get<static_cast<uint64_t>(Type::STRING)>(value);
+        break;
+        case Type::TARRAY:
+            break;
+        case Type::OBJECT:
+            break;
+        case Type::DATETS:
+            auto tp = std::chrono::system_clock::from_time_t(std::get<static_cast<uint32_t>(Type::DATETS)>(value));
 
             stream << std::format("{:%Y-%m-%d %H:%M}", tp);
         break;
@@ -232,7 +239,7 @@ int main() {
 
         auto record = getRecord(itemsTable, rowOffset);
 
-        auto createdAt = getInt64(record, "created_at");
+        auto createdAt = getInt64(record, getFieldOffset(record.table.columns, "created_at"));
 
         auto tp = std::chrono::system_clock::from_time_t(createdAt);
 

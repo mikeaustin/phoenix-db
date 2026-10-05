@@ -105,7 +105,7 @@ map<string, const Table&> tables = {
 
 struct Team {
     const Id id;
-    const uint64_t name;
+    const String name;
 };
 
 struct Item {
@@ -162,9 +162,9 @@ const uint64_t getInt64(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
 }
 
-const char *getString(const Record& record, const size_t fieldOffset) {
-    return reinterpret_cast<const char *>(&record.row[fieldOffset]);
-}
+// const char *getString(const Record& record, const size_t fieldOffset) {
+//     return reinterpret_cast<const char *>(&record.row[fieldOffset]);
+// }
 
 const Value getValue(const Record& record, const string& name) {
     auto fieldIndex = getFieldIndex(record.table.columns, name);
@@ -242,12 +242,12 @@ int main() {
     cout << "sizeof(Item) = " << sizeof(Item) << endl;
 
     struct Teams {
-        Team team1 = { Id { 100 }, 0x000031206d616554 };
-        Team team2 = { Id { 101 }, 0x000032206d616554  };
+        Team team1 = { Id { 100 }, String { 0x000031206d616554 } };
+        Team team2 = { Id { 101 }, String { 0x000032206d616554 } };
     } teams;
     
     struct Items {
-        Item item1 = { Id  { 2000 }, Id { 100 }, Timestamp { 946684860 }, String { 0x000031206d657449 } };
+        Item item1 = { Id { 2000 }, Id { 100 }, Timestamp { 946684860 }, String { 0x000031206d657449 } };
         Item item2 = { Id { 2001 }, Id { 100 }, Timestamp { 946684920 }, String { 0x000032206d657449 } };
         Item item3 = { Id { 2002 }, Id { 101 }, Timestamp { 946684980 }, String { 0x000033206d657449 } };
         Item item4 = { Id { 2003 }, Id { 101 }, Timestamp { 946685040 }, String { 0x000034206d657449 } };

@@ -13,9 +13,12 @@ using std::cout, std::endl;
 
 enum struct Id : uint64_t { };
 enum struct Offset : size_t { };
+
 enum struct Int32 : uint32_t { };
 enum struct Int64 : uint64_t { };
 enum struct String : uint64_t { };
+enum struct Array : uint8_t { };
+enum struct Object : uint64_t { };
 enum struct Timestamp : uint64_t { };
 
 enum Type : u_int32_t {
@@ -40,8 +43,8 @@ using Value = std::variant<
     Int32,
     Int64,
     String,
-    void *,
-    uint64_t,
+    Array,
+    Object,
     Timestamp
 >;
 
@@ -173,8 +176,8 @@ const Value getValue(const Record& record, const string& name) {
         case Type::UINT32: return Value { std::in_place_index<Type::UINT32>, Int32 { getInt32(record, fieldOffset) } };
         case Type::UINT64: return Value { std::in_place_index<Type::UINT64>, Int64 { getInt64(record, fieldOffset) } };
         case Type::STRING: return Value { std::in_place_index<Type::STRING>, String { getInt64(record, fieldOffset) } };
-        case Type::ARRAY: return Value { std::in_place_index<Type::ARRAY>, nullptr };
-        case Type::OBJECT: return Value { std::in_place_index<Type::OBJECT>, getInt64(record, fieldOffset) };
+        case Type::ARRAY: return Value { std::in_place_index<Type::ARRAY>, Array { 0 } };
+        case Type::OBJECT: return Value { std::in_place_index<Type::OBJECT>, Object { getInt64(record, fieldOffset) } };
         case Type::TIMESTAMP: return Value { std::in_place_index<Type::TIMESTAMP>, Timestamp { getInt64(record, fieldOffset) } };
     }
 

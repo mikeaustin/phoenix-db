@@ -13,6 +13,7 @@ using std::cout, std::endl;
 
 enum struct Id : uint64_t { };
 enum struct Offset : size_t { };
+enum struct Data : uint8_t { };
 
 enum struct Int32 : uint32_t { };
 enum struct Int64 : uint64_t { };
@@ -67,7 +68,7 @@ struct Table {
     const string name;
     const vector<Field> columns;
     const UniqueIndex primaryIndex;
-    uint8_t *data;
+    Data *data;
 } nullTable;
 
 extern Table teamsTable;
@@ -147,11 +148,11 @@ size_t getFieldIndex(const vector<Field>& fields, const string& name) {
 
 struct Record {
     const Table& table;
-    const uint8_t *row;
+    const Data *row;
 };
 
 const Record getRecord(const Table& table, Offset offset) {
-    return { table, &table.data[static_cast<size_t>(offset)] };
+    return { table, &reinterpret_cast<Data *>(table.data)[static_cast<size_t>(offset)] };
 }
 
 const uint32_t getInt32(const Record& record, const size_t fieldOffset) {
@@ -253,8 +254,8 @@ int main() {
         Item item4 = { Id { 2003 }, Id { 101 }, Timestamp { 946685040 }, String { 0x000034206d657449 } };
     } items;
 
-    teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
-    itemsTable.data = reinterpret_cast<uint8_t *>(&items);
+    teamsTable.data = reinterpret_cast<Data *>(&teams);
+    itemsTable.data = reinterpret_cast<Data *>(&items);
 
     //
 

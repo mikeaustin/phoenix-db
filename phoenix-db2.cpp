@@ -11,17 +11,21 @@
 using std::string, std::vector, std::map;
 using std::cout, std::endl;
 
+enum struct Id : uint64_t { };
+enum struct Offset : size_t { };
+enum struct Int32 : uint32_t { };
+enum struct Timestamp : uint64_t { };
+
 enum Type : u_int32_t {
-    UINT32 = 1,
-    UINT64 = 2,
-    STRING = 3,
-    TARRAY = 4,
-    OBJECT = 5,
-    DATETS = 6,
+    UINT32 = 0,
+    UINT64 = 1,
+    STRING = 2,
+    TARRAY = 3,
+    OBJECT = 4,
+    DATETS = 5,
 };
 
 size_t typeSize[] = {
-    4,
     4,
     8,
     8,
@@ -31,8 +35,7 @@ size_t typeSize[] = {
 };
 
 using Value = std::variant<
-    uint32_t,
-    uint32_t,
+    Int32,
     uint64_t,
     uint64_t,
     void *,
@@ -43,10 +46,6 @@ using Value = std::variant<
 struct Table;
 
 extern Table nullTable;
-
-enum struct Id : uint64_t { };
-enum struct Offset : size_t { };
-enum struct Timestamp : uint64_t { };
 
 struct UniqueIndex {
     const vector<Id> ids;
@@ -100,13 +99,13 @@ map<string, const Table&> tables = {
 //
 
 struct Team {
-    const uint64_t id;
+    const Id id;
     const uint64_t name;
 };
 
 struct Item {
-    const uint64_t id;
-    const uint64_t team_id;
+    const Id id;
+    const Id team_id;
     const Timestamp created_at;
     const uint64_t title;
 };
@@ -150,11 +149,11 @@ const Record getRecord(const Table& table, Offset offset) {
     return { table, &table.data[static_cast<size_t>(offset)] };
 }
 
-const int32_t getInt32(const Record& record, const size_t fieldOffset) {
+const uint32_t getInt32(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint32_t *>(&record.row[fieldOffset]);
 }
 
-const int64_t getInt64(const Record& record, const size_t fieldOffset) {
+const uint64_t getInt64(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
 }
 
@@ -171,7 +170,7 @@ const Value getValue(const Record& record, const string& name) {
     auto field = record.table.columns.at(fieldIndex);
 
     switch (field.type) {
-        case Type::UINT32: return Value { std::in_place_index<Type::UINT32>, getInt32(record, fieldOffset) };
+        case Type::UINT32: return Value { std::in_place_index<Type::UINT32>, Int32 { getInt32(record, fieldOffset) } };
         case Type::UINT64: return Value { std::in_place_index<Type::UINT64>, getInt64(record, fieldOffset) };
         case Type::STRING: return Value { std::in_place_index<Type::STRING>, getInt64(record, fieldOffset) };
         case Type::TARRAY: return Value { std::in_place_index<Type::TARRAY>, nullptr };
@@ -240,15 +239,15 @@ int main() {
     cout << "sizeof(Item) = " << sizeof(Item) << endl;
 
     struct Teams {
-        Team team1 = { 100, 0x000031206d616554 };
-        Team team2 = { 101, 0x000032206d616554  };
+        Team team1 = { Id { 100 }, 0x000031206d616554 };
+        Team team2 = { Id { 101 }, 0x000032206d616554  };
     } teams;
     
     struct Items {
-        Item item1 = { 2000, 100, Timestamp { 946684860 }, 0x000031206d657449 };
-        Item item2 = { 2001, 100, Timestamp { 946684920 }, 0x000032206d657449 };
-        Item item3 = { 2002, 101, Timestamp { 946684980 }, 0x000033206d657449 };
-        Item item4 = { 2003, 101, Timestamp { 946685040 }, 0x000034206d657449 };
+        Item item1 = { Id  { 2000 }, Id { 100 }, Timestamp { 946684860 }, 0x000031206d657449 };
+        Item item2 = { Id { 2001 }, Id { 100 }, Timestamp { 946684920 }, 0x000032206d657449 };
+        Item item3 = { Id { 2002 }, Id { 101 }, Timestamp { 946684980 }, 0x000033206d657449 };
+        Item item4 = { Id { 2003 }, Id { 101 }, Timestamp { 946685040 }, 0x000034206d657449 };
     } items;
 
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);

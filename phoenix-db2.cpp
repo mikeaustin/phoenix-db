@@ -22,7 +22,7 @@ enum struct Array : uint8_t { };
 enum struct Object : uint64_t { };
 enum struct Timestamp : uint64_t { };
 
-enum Type : u_int32_t {
+enum struct Type : u_int32_t {
     UINT32 = 0,
     UINT64 = 1,
     STRING = 2,
@@ -126,7 +126,7 @@ size_t getFieldOffset(const vector<Field>& fields, const string& name) {
             return fieldOffset;
         }
 
-        fieldOffset += typeSize[field.type];
+        fieldOffset += typeSize[static_cast<uint32_t>(field.type)];
     }
 
     return fieldOffset;
@@ -163,9 +163,12 @@ const uint64_t getInt64(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
 }
 
-// const char *getString(const Record& record, const size_t fieldOffset) {
-//     return reinterpret_cast<const char *>(&record.row[fieldOffset]);
-// }
+template <auto EnumVal>
+constexpr auto type_index() {
+    return std::in_place_index<static_cast<std::size_t>(
+        static_cast<std::underlying_type_t<decltype(EnumVal)>>(EnumVal)
+    )>;
+}
 
 const Value getValue(const Record& record, const string& name) {
     auto fieldIndex = getFieldIndex(record.table.columns, name);
@@ -174,27 +177,27 @@ const Value getValue(const Record& record, const string& name) {
     auto field = record.table.columns.at(fieldIndex);
 
     switch (field.type) {
-        case Type::UINT32: return Value { std::in_place_index<Type::UINT32>, Int32 { getInt32(record, fieldOffset) } };
-        case Type::UINT64: return Value { std::in_place_index<Type::UINT64>, Int64 { getInt64(record, fieldOffset) } };
-        case Type::STRING: return Value { std::in_place_index<Type::STRING>, String { getInt64(record, fieldOffset) } };
-        case Type::ARRAY: return Value { std::in_place_index<Type::ARRAY>, Array { 0 } };
-        case Type::OBJECT: return Value { std::in_place_index<Type::OBJECT>, Object { getInt64(record, fieldOffset) } };
-        case Type::TIMESTAMP: return Value { std::in_place_index<Type::TIMESTAMP>, Timestamp { getInt64(record, fieldOffset) } };
+        case Type::UINT32: return Value { std::in_place_index<static_cast<uint32_t>(Type::UINT32)>, Int32 { getInt32(record, fieldOffset) } };
+        case Type::UINT64: return Value { type_index<Type::UINT64>(), Int64 { getInt64(record, fieldOffset) } };
+        case Type::STRING: return Value { type_index<Type::STRING>(), String { getInt64(record, fieldOffset) } };
+        case Type::ARRAY: return Value { type_index<Type::ARRAY>(), Array { 0 } };
+        case Type::OBJECT: return Value { type_index<Type::OBJECT>(), Object { getInt64(record, fieldOffset) } };
+        case Type::TIMESTAMP: return Value { type_index<Type::TIMESTAMP>(), Timestamp { getInt64(record, fieldOffset) } };
     }
 
     return Value { };
 }
 
 std::ostream& operator <<(std::ostream& stream, const Value& value) {
-    switch (value.index()) {
+    switch (static_cast<Type>(value.index())) {
         case Type::UINT32:
-            stream << std::get<Type::UINT32>(value);
+            stream << std::get<static_cast<uint32_t>(Type::UINT32)>(value);
             break;
         case Type::UINT64:
-            stream << std::get<Type::UINT64>(value);
+            stream << std::get<static_cast<uint32_t>(Type::UINT64)>(value);
             break;
         case Type::STRING: {
-                auto str = std::get<Type::STRING>(value);
+                auto str = std::get<static_cast<uint32_t>(Type::STRING)>(value);
 
                 stream << reinterpret_cast<const char *>(&str);
             }
@@ -204,7 +207,7 @@ std::ostream& operator <<(std::ostream& stream, const Value& value) {
         case Type::OBJECT:
             break;
         case Type::TIMESTAMP: {
-                auto tp = std::chrono::system_clock::from_time_t(static_cast<uint64_t>(std::get<Type::TIMESTAMP>(value)));
+                auto tp = std::chrono::system_clock::from_time_t(static_cast<uint64_t>(std::get<static_cast<uint32_t>(Type::TIMESTAMP)>(value)));
 
                 stream << std::format("{:%Y-%m-%d %H:%M}", tp);
             }

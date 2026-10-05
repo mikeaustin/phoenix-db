@@ -14,6 +14,8 @@ using std::cout, std::endl;
 enum struct Id : uint64_t { };
 enum struct Offset : size_t { };
 enum struct Int32 : uint32_t { };
+enum struct Int64 : uint64_t { };
+enum struct String : uint64_t { };
 enum struct Timestamp : uint64_t { };
 
 enum Type : u_int32_t {
@@ -36,11 +38,11 @@ size_t typeSize[] = {
 
 using Value = std::variant<
     Int32,
-    uint64_t,
-    uint64_t,
+    Int64,
+    String,
     void *,
     uint64_t,
-    uint64_t
+    Timestamp
 >;
 
 struct Table;
@@ -107,7 +109,7 @@ struct Item {
     const Id id;
     const Id team_id;
     const Timestamp created_at;
-    const uint64_t title;
+    const String title;
 };
 
 //
@@ -157,9 +159,7 @@ const uint64_t getInt64(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
 }
 
-const char *getString(const Record& record, const string& name) {
-    auto fieldOffset = getFieldOffset(record.table.columns, name);
-
+const char *getString(const Record& record, const size_t fieldOffset) {
     return reinterpret_cast<const char *>(&record.row[fieldOffset]);
 }
 
@@ -171,11 +171,11 @@ const Value getValue(const Record& record, const string& name) {
 
     switch (field.type) {
         case Type::UINT32: return Value { std::in_place_index<Type::UINT32>, Int32 { getInt32(record, fieldOffset) } };
-        case Type::UINT64: return Value { std::in_place_index<Type::UINT64>, getInt64(record, fieldOffset) };
-        case Type::STRING: return Value { std::in_place_index<Type::STRING>, getInt64(record, fieldOffset) };
+        case Type::UINT64: return Value { std::in_place_index<Type::UINT64>, Int64 { getInt64(record, fieldOffset) } };
+        case Type::STRING: return Value { std::in_place_index<Type::STRING>, String { getInt64(record, fieldOffset) } };
         case Type::TARRAY: return Value { std::in_place_index<Type::TARRAY>, nullptr };
         case Type::OBJECT: return Value { std::in_place_index<Type::OBJECT>, getInt64(record, fieldOffset) };
-        case Type::DATETS: return Value { std::in_place_index<Type::DATETS>, getInt64(record, fieldOffset) };
+        case Type::DATETS: return Value { std::in_place_index<Type::DATETS>, Timestamp { getInt64(record, fieldOffset) } };
     }
 
     return Value { };
@@ -200,7 +200,7 @@ std::ostream& operator <<(std::ostream& stream, const Value& value) {
         case Type::OBJECT:
             break;
         case Type::DATETS: {
-                auto tp = std::chrono::system_clock::from_time_t(std::get<Type::DATETS>(value));
+                auto tp = std::chrono::system_clock::from_time_t(static_cast<uint64_t>(std::get<Type::DATETS>(value)));
 
                 stream << std::format("{:%Y-%m-%d %H:%M}", tp);
             }
@@ -244,10 +244,10 @@ int main() {
     } teams;
     
     struct Items {
-        Item item1 = { Id  { 2000 }, Id { 100 }, Timestamp { 946684860 }, 0x000031206d657449 };
-        Item item2 = { Id { 2001 }, Id { 100 }, Timestamp { 946684920 }, 0x000032206d657449 };
-        Item item3 = { Id { 2002 }, Id { 101 }, Timestamp { 946684980 }, 0x000033206d657449 };
-        Item item4 = { Id { 2003 }, Id { 101 }, Timestamp { 946685040 }, 0x000034206d657449 };
+        Item item1 = { Id  { 2000 }, Id { 100 }, Timestamp { 946684860 }, String { 0x000031206d657449 } };
+        Item item2 = { Id { 2001 }, Id { 100 }, Timestamp { 946684920 }, String { 0x000032206d657449 } };
+        Item item3 = { Id { 2002 }, Id { 101 }, Timestamp { 946684980 }, String { 0x000033206d657449 } };
+        Item item4 = { Id { 2003 }, Id { 101 }, Timestamp { 946685040 }, String { 0x000034206d657449 } };
     } items;
 
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);
@@ -269,7 +269,7 @@ int main() {
     if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), Id { 2001 })) {
         auto record = getRecord(itemsTable, itemsTable.primaryIndex.offsets[*index]);
 
-        cout << getString(record, "title") << endl;
+        cout << getValue(record, "title") << endl;
     }
 
     return 0;

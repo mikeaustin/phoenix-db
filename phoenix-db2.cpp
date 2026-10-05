@@ -46,6 +46,7 @@ extern Table nullTable;
 
 enum struct Id : uint64_t { };
 enum struct Offset : size_t { };
+enum struct Timestamp : uint64_t { };
 
 struct UniqueIndex {
     const vector<Id> ids;
@@ -106,7 +107,7 @@ struct Team {
 struct Item {
     const uint64_t id;
     const uint64_t team_id;
-    const uint64_t created_at;
+    const Timestamp created_at;
     const uint64_t title;
 };
 
@@ -244,10 +245,10 @@ int main() {
     } teams;
     
     struct Items {
-        Item item1 = { 2000, 100, 946684860, 0x000031206d657449 };
-        Item item2 = { 2001, 100, 946684920, 0x000032206d657449 };
-        Item item3 = { 2002, 101, 946684980, 0x000033206d657449 };
-        Item item4 = { 2003, 101, 946685040, 0x000034206d657449 };
+        Item item1 = { 2000, 100, Timestamp { 946684860 }, 0x000031206d657449 };
+        Item item2 = { 2001, 100, Timestamp { 946684920 }, 0x000032206d657449 };
+        Item item3 = { 2002, 101, Timestamp { 946684980 }, 0x000033206d657449 };
+        Item item4 = { 2003, 101, Timestamp { 946685040 }, 0x000034206d657449 };
     } items;
 
     teamsTable.data = reinterpret_cast<uint8_t *>(&teams);

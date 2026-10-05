@@ -22,9 +22,9 @@ enum Type : u_int32_t {
     UINT32 = 0,
     UINT64 = 1,
     STRING = 2,
-    TARRAY = 3,
+    ARRAY = 3,
     OBJECT = 4,
-    DATETS = 5,
+    TIMESTAMP = 5,
 };
 
 size_t typeSize[] = {
@@ -75,7 +75,7 @@ Table teamsTable = {
     {
         { "id", Type::UINT64 },
         { "name", Type::STRING },
-        { "items", Type::TARRAY, itemsTable },
+        { "items", Type::ARRAY, itemsTable },
     },
 };
 
@@ -84,7 +84,7 @@ Table itemsTable = {
     {
         { "id", Type::UINT64 },
         { "team_id", Type::OBJECT, teamsTable },
-        { "created_at", Type::DATETS },
+        { "created_at", Type::TIMESTAMP },
         { "title", Type::STRING },
     },
     {
@@ -173,9 +173,9 @@ const Value getValue(const Record& record, const string& name) {
         case Type::UINT32: return Value { std::in_place_index<Type::UINT32>, Int32 { getInt32(record, fieldOffset) } };
         case Type::UINT64: return Value { std::in_place_index<Type::UINT64>, Int64 { getInt64(record, fieldOffset) } };
         case Type::STRING: return Value { std::in_place_index<Type::STRING>, String { getInt64(record, fieldOffset) } };
-        case Type::TARRAY: return Value { std::in_place_index<Type::TARRAY>, nullptr };
+        case Type::ARRAY: return Value { std::in_place_index<Type::ARRAY>, nullptr };
         case Type::OBJECT: return Value { std::in_place_index<Type::OBJECT>, getInt64(record, fieldOffset) };
-        case Type::DATETS: return Value { std::in_place_index<Type::DATETS>, Timestamp { getInt64(record, fieldOffset) } };
+        case Type::TIMESTAMP: return Value { std::in_place_index<Type::TIMESTAMP>, Timestamp { getInt64(record, fieldOffset) } };
     }
 
     return Value { };
@@ -195,12 +195,12 @@ std::ostream& operator <<(std::ostream& stream, const Value& value) {
                 stream << reinterpret_cast<const char *>(&str);
             }
             break;
-        case Type::TARRAY:
+        case Type::ARRAY:
             break;
         case Type::OBJECT:
             break;
-        case Type::DATETS: {
-                auto tp = std::chrono::system_clock::from_time_t(static_cast<uint64_t>(std::get<Type::DATETS>(value)));
+        case Type::TIMESTAMP: {
+                auto tp = std::chrono::system_clock::from_time_t(static_cast<uint64_t>(std::get<Type::TIMESTAMP>(value)));
 
                 stream << std::format("{:%Y-%m-%d %H:%M}", tp);
             }

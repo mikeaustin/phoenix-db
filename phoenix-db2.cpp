@@ -49,6 +49,17 @@ using Value = std::variant<
     Timestamp
 >;
 
+struct Node {
+    std::variant<
+        Int32,
+        Int64,
+        String,
+        vector<Node>,
+        Object,
+        Timestamp
+    > data;
+};
+
 struct Table;
 
 extern Table nullTable;
@@ -163,10 +174,10 @@ const uint64_t getInt64(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
 }
 
-template <auto EnumVal>
+template <Type T>
 constexpr auto type_index() {
-    return std::in_place_index<static_cast<std::size_t>(
-        static_cast<std::underlying_type_t<decltype(EnumVal)>>(EnumVal)
+    return std::in_place_index<static_cast<size_t>(
+        static_cast<std::underlying_type_t<decltype(T)>>(T)
     )>;
 }
 
@@ -177,12 +188,18 @@ const Value getValue(const Record& record, const string& name) {
     auto field = record.table.columns.at(fieldIndex);
 
     switch (field.type) {
-        case Type::UINT32: return Value { std::in_place_index<static_cast<uint32_t>(Type::UINT32)>, Int32 { getInt32(record, fieldOffset) } };
-        case Type::UINT64: return Value { type_index<Type::UINT64>(), Int64 { getInt64(record, fieldOffset) } };
-        case Type::STRING: return Value { type_index<Type::STRING>(), String { getInt64(record, fieldOffset) } };
-        case Type::ARRAY: return Value { type_index<Type::ARRAY>(), Array { 0 } };
-        case Type::OBJECT: return Value { type_index<Type::OBJECT>(), Object { getInt64(record, fieldOffset) } };
-        case Type::TIMESTAMP: return Value { type_index<Type::TIMESTAMP>(), Timestamp { getInt64(record, fieldOffset) } };
+        case Type::UINT32:
+            return Value { type_index<Type::UINT32>(), Int32 { getInt32(record, fieldOffset) } };
+        case Type::UINT64:
+            return Value { type_index<Type::UINT64>(), Int64 { getInt64(record, fieldOffset) } };
+        case Type::STRING:
+            return Value { type_index<Type::STRING>(), String { getInt64(record, fieldOffset) } };
+        case Type::ARRAY:
+            return Value { type_index<Type::ARRAY>(), Array { 0 } };
+        case Type::OBJECT:
+            return Value { type_index<Type::OBJECT>(), Object { getInt64(record, fieldOffset) } };
+        case Type::TIMESTAMP:
+            return Value { type_index<Type::TIMESTAMP>(), Timestamp { getInt64(record, fieldOffset) } };
     }
 
     return Value { };

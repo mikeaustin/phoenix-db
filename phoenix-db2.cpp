@@ -40,6 +40,13 @@ size_t typeSize[] = {
     8,
 };
 
+template <Type T>
+constexpr auto type_index() {
+    return std::in_place_index<static_cast<size_t>(
+        static_cast<std::underlying_type_t<decltype(T)>>(T)
+    )>;
+}
+
 using Value = std::variant<
     Int32,
     Int64,
@@ -49,16 +56,28 @@ using Value = std::variant<
     Timestamp
 >;
 
+struct Node;
+
+using Array2 = vector<Node>;
+
 struct Node {
     std::variant<
         Int32,
         Int64,
         String,
-        vector<Node>,
+        Array2,
         Object,
         Timestamp
     > data;
 };
+
+Node node {
+    decltype(Node::data) {
+        type_index<Type::UINT64>(), Int64 { 10ULL }
+    }
+};
+
+//
 
 struct Table;
 
@@ -172,13 +191,6 @@ const uint32_t getInt32(const Record& record, const size_t fieldOffset) {
 
 const uint64_t getInt64(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
-}
-
-template <Type T>
-constexpr auto type_index() {
-    return std::in_place_index<static_cast<size_t>(
-        static_cast<std::underlying_type_t<decltype(T)>>(T)
-    )>;
 }
 
 const Value getValue(const Record& record, const string& name) {

@@ -246,6 +246,35 @@ std::ostream& operator <<(std::ostream& stream, const Value& value) {
     return stream;
 }
 
+std::ostream& operator <<(std::ostream& stream, const Node& value) {
+    switch (static_cast<Type>(value.data.index())) {
+        case Type::UINT32:
+            stream << std::get<static_cast<uint32_t>(Type::UINT32)>(value.data);
+            break;
+        case Type::UINT64:
+            stream << std::get<static_cast<uint32_t>(Type::UINT64)>(value.data);
+            break;
+        case Type::STRING: {
+                auto str = std::get<static_cast<uint32_t>(Type::STRING)>(value.data);
+
+                stream << reinterpret_cast<const char *>(&str);
+            }
+            break;
+        case Type::ARRAY:
+            break;
+        case Type::OBJECT:
+            break;
+        case Type::TIMESTAMP: {
+                auto tp = std::chrono::system_clock::from_time_t(static_cast<uint64_t>(std::get<static_cast<uint32_t>(Type::TIMESTAMP)>(value.data)));
+
+                stream << std::format("{:%Y-%m-%d %H:%M}", tp);
+            }
+            break;
+    }
+
+    return stream;
+}
+
 //
 
 template <typename T>

@@ -15,13 +15,6 @@ enum struct Id : uint64_t { };
 enum struct Offset : size_t { };
 enum struct Data : uint8_t { };
 
-enum struct Int32 : uint32_t { };
-enum struct Int64 : uint64_t { };
-enum struct String : uint64_t { };
-enum struct Array : uint8_t { };
-enum struct Object : uint64_t { };
-enum struct Timestamp : uint64_t { };
-
 enum struct Type : u_int32_t {
     UINT32 = 0,
     UINT64 = 1,
@@ -47,32 +40,28 @@ constexpr auto type_index() {
     )>;
 }
 
-using Value = std::variant<
-    Int32,
-    Int64,
-    String,
-    Array,
-    Object,
-    Timestamp
->;
+struct Value;
 
-struct Node;
+using Int32 = uint32_t;
+using Int64 = uint64_t;
+using String = uint64_t;
+using Array = vector<Value>;
+using Object = uint64_t;
+using Timestamp = uint64_t;
 
-using Array2 = vector<Node>;
-
-struct Node {
+struct Value {
     std::variant<
         Int32,
         Int64,
         String,
-        Array2,
+        Array,
         Object,
         Timestamp
     > data;
 };
 
-Node node {
-    decltype(Node::data) {
+Value node {
+    decltype(Value::data) {
         type_index<Type::UINT64>(), Int64 { 10ULL }
     }
 };
@@ -201,52 +190,23 @@ const Value getValue(const Record& record, const string& name) {
 
     switch (field.type) {
         case Type::UINT32:
-            return Value { type_index<Type::UINT32>(), Int32 { getInt32(record, fieldOffset) } };
+            return Value { decltype(Value::data) { type_index<Type::UINT32>(), Int32 { getInt32(record, fieldOffset) } } };
         case Type::UINT64:
-            return Value { type_index<Type::UINT64>(), Int64 { getInt64(record, fieldOffset) } };
+            return Value { decltype(Value::data) { type_index<Type::UINT64>(), Int64 { getInt64(record, fieldOffset) } } };
         case Type::STRING:
-            return Value { type_index<Type::STRING>(), String { getInt64(record, fieldOffset) } };
+            return Value { decltype(Value::data) { type_index<Type::STRING>(), String { getInt64(record, fieldOffset) } } };
         case Type::ARRAY:
-            return Value { type_index<Type::ARRAY>(), Array { 0 } };
+            return Value { decltype(Value::data) { type_index<Type::ARRAY>(), Array { } } };
         case Type::OBJECT:
-            return Value { type_index<Type::OBJECT>(), Object { getInt64(record, fieldOffset) } };
+            return Value { decltype(Value::data) { type_index<Type::OBJECT>(), Object { getInt64(record, fieldOffset) } } };
         case Type::TIMESTAMP:
-            return Value { type_index<Type::TIMESTAMP>(), Timestamp { getInt64(record, fieldOffset) } };
+            return Value { decltype(Value::data) { type_index<Type::TIMESTAMP>(), Timestamp { getInt64(record, fieldOffset) } } };
     }
 
     return Value { };
 }
 
 std::ostream& operator <<(std::ostream& stream, const Value& value) {
-    switch (static_cast<Type>(value.index())) {
-        case Type::UINT32:
-            stream << std::get<static_cast<uint32_t>(Type::UINT32)>(value);
-            break;
-        case Type::UINT64:
-            stream << std::get<static_cast<uint32_t>(Type::UINT64)>(value);
-            break;
-        case Type::STRING: {
-                auto str = std::get<static_cast<uint32_t>(Type::STRING)>(value);
-
-                stream << reinterpret_cast<const char *>(&str);
-            }
-            break;
-        case Type::ARRAY:
-            break;
-        case Type::OBJECT:
-            break;
-        case Type::TIMESTAMP: {
-                auto tp = std::chrono::system_clock::from_time_t(static_cast<uint64_t>(std::get<static_cast<uint32_t>(Type::TIMESTAMP)>(value)));
-
-                stream << std::format("{:%Y-%m-%d %H:%M}", tp);
-            }
-            break;
-    }
-
-    return stream;
-}
-
-std::ostream& operator <<(std::ostream& stream, const Node& value) {
     switch (static_cast<Type>(value.data.index())) {
         case Type::UINT32:
             stream << std::get<static_cast<uint32_t>(Type::UINT32)>(value.data);
@@ -265,7 +225,7 @@ std::ostream& operator <<(std::ostream& stream, const Node& value) {
         case Type::OBJECT:
             break;
         case Type::TIMESTAMP: {
-                auto tp = std::chrono::system_clock::from_time_t(static_cast<uint64_t>(std::get<static_cast<uint32_t>(Type::TIMESTAMP)>(value.data)));
+                auto tp = std::chrono::system_clock::from_time_t(std::get<static_cast<uint32_t>(Type::TIMESTAMP)>(value.data));
 
                 stream << std::format("{:%Y-%m-%d %H:%M}", tp);
             }

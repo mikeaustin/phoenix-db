@@ -44,6 +44,15 @@ struct Value {
     > data;
 };
 
+struct Array2 {
+    void push_back(const Value& value) {
+        rows.push_back(value);
+    }
+
+    const vector<string> fieldNames;
+    vector<Value> rows;
+};
+
 //
 
 struct Table;
@@ -304,6 +313,7 @@ int main() {
     //
 
     Array rows;
+    Array2 rows2 = { { "id" } };
 
     for (size_t i = 0; i < itemsTable.primaryIndex.ids.size(); ++i) {
         auto rowOffset = itemsTable.primaryIndex.offsets[i];

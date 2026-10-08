@@ -1,4 +1,4 @@
-// g++ -std=c++20 -O3 -flto phoenix-db2.cpp
+// g++ -std=c++20 -O3 -flto -Wimplicit-fallthrough phoenix-db2.cpp
 
 #include <iostream>
 #include <variant>
@@ -15,15 +15,6 @@ enum struct Id : uint64_t { };
 enum struct Offset : size_t { };
 enum struct Data : uint8_t { };
 
-enum struct Type : u_int32_t {
-    UINT32 = 0,
-    UINT64 = 1,
-    STRING = 2,
-    ARRAY = 3,
-    OBJECT = 4,
-    TIMESTAMP = 5,
-};
-
 size_t typeSize[] = {
     4,
     8,
@@ -33,13 +24,6 @@ size_t typeSize[] = {
     8,
 };
 
-template <Type T>
-constexpr auto type_index() {
-    return std::in_place_index<static_cast<size_t>(
-        static_cast<std::underlying_type_t<decltype(T)>>(T)
-    )>;
-}
-
 struct Value;
 
 using Int32 = uint32_t;
@@ -47,7 +31,7 @@ using Int64 = uint64_t;
 using String = uint64_t;
 using Array = vector<Value>;
 using Object = uint64_t;
-using Timestamp = uint64_t;
+using Time = uint64_t;
 
 struct Value {
     std::variant<
@@ -56,14 +40,8 @@ struct Value {
         String,
         Array,
         Object,
-        Timestamp
+        Time
     > data;
-};
-
-Value node {
-    decltype(Value::data) {
-        type_index<Type::UINT64>(), Int64 { 10ULL }
-    }
 };
 
 //
@@ -78,10 +56,26 @@ struct UniqueIndex {
 };
 
 struct Field {
+    enum Type : u_int32_t {
+        UINT32 = 0,
+        UINT64 = 1,
+        STRING = 2,
+        ARRAY = 3,
+        OBJECT = 4,
+        TIMESTAMP = 5,
+    };
+
     const string name;
     const Type type;
     const Table& table = nullTable;
 };
+
+template <Field::Type T>
+constexpr auto type_index() {
+    return std::in_place_index<static_cast<size_t>(
+        static_cast<std::underlying_type_t<decltype(T)>>(T)
+    )>;
+}
 
 struct Table {
     const string name;
@@ -96,19 +90,19 @@ extern Table itemsTable;
 Table teamsTable = {
     "teams",
     {
-        { "id", Type::UINT64 },
-        { "name", Type::STRING },
-        { "items", Type::ARRAY, itemsTable },
+        { "id", Field::UINT64 },
+        { "name", Field::STRING },
+        { "items", Field::ARRAY, itemsTable },
     },
 };
 
 Table itemsTable = {
     "items",
     {
-        { "id", Type::UINT64 },
-        { "team_id", Type::OBJECT, teamsTable },
-        { "created_at", Type::TIMESTAMP },
-        { "title", Type::STRING },
+        { "id", Field::UINT64 },
+        { "team_id", Field::OBJECT, teamsTable },
+        { "created_at", Field::TIMESTAMP },
+        { "title", Field::STRING },
     },
     {
         { Id { 2000 }, Id { 2001 }, Id { 2002 }, Id { 2003 } },
@@ -131,7 +125,7 @@ struct Team {
 struct Item {
     const Id id;
     const Id team_id;
-    const Timestamp created_at;
+    const Time created_at;
     const String title;
 };
 
@@ -174,11 +168,11 @@ const Record getRecord(const Table& table, Offset offset) {
     return { table, &reinterpret_cast<Data *>(table.data)[static_cast<size_t>(offset)] };
 }
 
-const uint32_t getInt32(const Record& record, const size_t fieldOffset) {
+uint32_t getInt32(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint32_t *>(&record.row[fieldOffset]);
 }
 
-const uint64_t getInt64(const Record& record, const size_t fieldOffset) {
+uint64_t getInt64(const Record& record, const size_t fieldOffset) {
     return *reinterpret_cast<const uint64_t *>(&record.row[fieldOffset]);
 }
 
@@ -189,43 +183,43 @@ const Value getValue(const Record& record, const string& name) {
     auto field = record.table.columns.at(fieldIndex);
 
     switch (field.type) {
-        case Type::UINT32:
-            return Value { decltype(Value::data) { type_index<Type::UINT32>(), Int32 { getInt32(record, fieldOffset) } } };
-        case Type::UINT64:
-            return Value { decltype(Value::data) { type_index<Type::UINT64>(), Int64 { getInt64(record, fieldOffset) } } };
-        case Type::STRING:
-            return Value { decltype(Value::data) { type_index<Type::STRING>(), String { getInt64(record, fieldOffset) } } };
-        case Type::ARRAY:
-            return Value { decltype(Value::data) { type_index<Type::ARRAY>(), Array { } } };
-        case Type::OBJECT:
-            return Value { decltype(Value::data) { type_index<Type::OBJECT>(), Object { getInt64(record, fieldOffset) } } };
-        case Type::TIMESTAMP:
-            return Value { decltype(Value::data) { type_index<Type::TIMESTAMP>(), Timestamp { getInt64(record, fieldOffset) } } };
+        case Field::UINT32:
+            return Value { decltype(Value::data) { type_index<Field::UINT32>(), Int32 { getInt32(record, fieldOffset) } } };
+        case Field::UINT64:
+            return Value { decltype(Value::data) { type_index<Field::UINT64>(), Int64 { getInt64(record, fieldOffset) } } };
+        case Field::STRING:
+            return Value { decltype(Value::data) { type_index<Field::STRING>(), String { getInt64(record, fieldOffset) } } };
+        case Field::ARRAY:
+            return Value { decltype(Value::data) { type_index<Field::ARRAY>(), Array { } } };
+        case Field::OBJECT:
+            return Value { decltype(Value::data) { type_index<Field::OBJECT>(), Object { getInt64(record, fieldOffset) } } };
+        case Field::TIMESTAMP:
+            return Value { decltype(Value::data) { type_index<Field::TIMESTAMP>(), Time { getInt64(record, fieldOffset) } } };
     }
 
     return Value { };
 }
 
 std::ostream& operator <<(std::ostream& stream, const Value& value) {
-    switch (static_cast<Type>(value.data.index())) {
-        case Type::UINT32:
-            stream << std::get<static_cast<uint32_t>(Type::UINT32)>(value.data);
+    switch (static_cast<Field::Type>(value.data.index())) {
+        case Field::UINT32:
+            stream << std::get<static_cast<uint32_t>(Field::UINT32)>(value.data);
             break;
-        case Type::UINT64:
-            stream << std::get<static_cast<uint32_t>(Type::UINT64)>(value.data);
+        case Field::UINT64:
+            stream << std::get<static_cast<uint32_t>(Field::UINT64)>(value.data);
             break;
-        case Type::STRING: {
-                auto str = std::get<static_cast<uint32_t>(Type::STRING)>(value.data);
+        case Field::STRING: {
+                auto str = std::get<static_cast<uint32_t>(Field::STRING)>(value.data);
 
                 stream << reinterpret_cast<const char *>(&str);
             }
             break;
-        case Type::ARRAY:
+        case Field::ARRAY:
             break;
-        case Type::OBJECT:
+        case Field::OBJECT:
             break;
-        case Type::TIMESTAMP: {
-                auto tp = std::chrono::system_clock::from_time_t(std::get<static_cast<uint32_t>(Type::TIMESTAMP)>(value.data));
+        case Field::TIMESTAMP: {
+                auto tp = std::chrono::system_clock::from_time_t(std::get<static_cast<uint32_t>(Field::TIMESTAMP)>(value.data));
 
                 stream << std::format("{:%Y-%m-%d %H:%M}", tp);
             }
@@ -260,6 +254,35 @@ std::optional<size_t> lowerBound(const T *array, size_t count, T value) {
 
 //
 
+struct Results {
+    const vector<Field>& fields;
+    const Array& rows;
+};
+
+void printResults(const Results& results) {
+    for (auto row : results.rows) {
+        switch(static_cast<Field::Type>(row.data.index())) {
+            case Field::OBJECT:
+                break;
+            case Field::UINT32:
+            case Field::UINT64:
+            case Field::STRING:
+            case Field::TIMESTAMP:
+                cout << row << "\t";
+                break;
+            case Field::ARRAY: {
+                auto array = std::get<static_cast<uint32_t>(Field::ARRAY)>(row.data);
+
+                printResults(Results { teamsTable.columns, array });
+            }
+        }
+    }
+
+    cout << endl;
+}
+
+//
+
 int main() {
     cout << "sizeof(Item) = " << sizeof(Item) << endl;
 
@@ -269,16 +292,18 @@ int main() {
     } teams;
     
     struct Items {
-        Item item1 = { Id { 2000 }, Id { 100 }, Timestamp { 946684860 }, String { 0x000031206d657449 } };
-        Item item2 = { Id { 2001 }, Id { 100 }, Timestamp { 946684920 }, String { 0x000032206d657449 } };
-        Item item3 = { Id { 2002 }, Id { 101 }, Timestamp { 946684980 }, String { 0x000033206d657449 } };
-        Item item4 = { Id { 2003 }, Id { 101 }, Timestamp { 946685040 }, String { 0x000034206d657449 } };
+        Item item1 = { Id { 2000 }, Id { 100 }, Time { 946684860 }, String { 0x000031206d657449 } };
+        Item item2 = { Id { 2001 }, Id { 100 }, Time { 946684920 }, String { 0x000032206d657449 } };
+        Item item3 = { Id { 2002 }, Id { 101 }, Time { 946684980 }, String { 0x000033206d657449 } };
+        Item item4 = { Id { 2003 }, Id { 101 }, Time { 946685040 }, String { 0x000034206d657449 } };
     } items;
 
     teamsTable.data = reinterpret_cast<Data *>(&teams);
     itemsTable.data = reinterpret_cast<Data *>(&items);
 
     //
+
+    Array rows;
 
     for (size_t i = 0; i < itemsTable.primaryIndex.ids.size(); ++i) {
         auto rowOffset = itemsTable.primaryIndex.offsets[i];
@@ -288,8 +313,20 @@ int main() {
         auto title = getValue(record, "title");
         auto createdAt = getValue(record, "created_at");
 
-        cout << i << "\t" << title << "\t\t" << createdAt << endl;
+        // cout << i << "\t" << title << "\t\t" << createdAt << endl;
+
+        Array columns;
+
+        for (auto field : itemsTable.columns) {
+            columns.push_back(getValue(record, field.name));
+        }
+
+        rows.push_back(Value { columns });
     }
+
+    auto results = Results { itemsTable.columns, rows };
+
+    printResults(results);
 
     if (auto index = lowerBound(itemsTable.primaryIndex.ids.data(), itemsTable.primaryIndex.ids.size(), Id { 2001 })) {
         auto record = getRecord(itemsTable, itemsTable.primaryIndex.offsets[*index]);

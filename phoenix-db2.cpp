@@ -11,6 +11,16 @@
 using std::string, std::vector, std::map;
 using std::cout, std::endl;
 
+template <typename T>
+struct Array2 {
+    void push_back(const T& value) {
+        rows.push_back(value);
+    }
+
+    const vector<string> fieldNames;
+    vector<T> rows;
+};
+
 enum struct Id : uint64_t { };
 enum struct Offset : size_t { };
 enum struct Data : uint8_t { };
@@ -29,28 +39,12 @@ struct Value;
 using Int32 = uint32_t;
 using Int64 = uint64_t;
 using String = uint64_t;
-using Array = vector<Value>;
+using Array = Array2<Value>;
 using Object = uint64_t;
 using Time = uint64_t;
 
 struct Value {
-    std::variant<
-        Int32,
-        Int64,
-        String,
-        Array,
-        Object,
-        Time
-    > data;
-};
-
-struct Array2 {
-    void push_back(const Value& value) {
-        rows.push_back(value);
-    }
-
-    const vector<string> fieldNames;
-    vector<Value> rows;
+    std::variant<Int32, Int64, String, Array, Object, Time> data;
 };
 
 //
@@ -269,7 +263,7 @@ struct Results {
 };
 
 void printResults(const Results& results) {
-    for (auto row : results.rows) {
+    for (auto row : results.rows.rows) {
         switch(static_cast<Field::Type>(row.data.index())) {
             case Field::OBJECT:
                 break;
@@ -313,7 +307,7 @@ int main() {
     //
 
     Array rows;
-    Array2 rows2 = { { "id" } };
+    Array2<Value> rows2 = { { "id" } };
 
     for (size_t i = 0; i < itemsTable.primaryIndex.ids.size(); ++i) {
         auto rowOffset = itemsTable.primaryIndex.offsets[i];
